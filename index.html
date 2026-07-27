@@ -108,7 +108,13 @@
         }
         button:hover { background-color: #ff6b81; }
         
-        /* Logs */
+        /* Logs & Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
         .log-list { list-style: none; padding: 0; margin: 0; }
         .log-item {
             background: var(--bg-color);
@@ -253,7 +259,12 @@
     <!-- History Section -->
     <div class="card">
         <h3>Today's Log</h3>
-        <button onclick="clearDay()" style="background-color: #747d8c; margin-bottom: 15px;">Clear Today's Data</button>
+        
+        <div class="action-buttons">
+            <button onclick="downloadLog()" style="background-color: #2ed573; flex: 1;">📥 Download Log (.csv)</button>
+            <button onclick="clearDay()" style="background-color: #747d8c; flex: 1;">🗑️ Clear Today's Data</button>
+        </div>
+
         <ul class="log-list" id="logList">
             <!-- Entries will appear here -->
         </ul>
@@ -319,6 +330,42 @@
                 localStorage.removeItem('bulkingData');
                 loadData();
             }
+        }
+
+        function downloadLog() {
+            let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
+            if (records.length === 0) {
+                alert("You haven't logged any meals yet today!");
+                return;
+            }
+
+            // Create CSV Headers
+            let csvContent = "Time,Food Item,Calories,Protein(g),Carbs(g)\n";
+
+            // Add Data Rows
+            records.forEach(item => {
+                let timeParts = item.time.split(':');
+                let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
+                let hours = timeParts[0] % 12 || 12;
+                let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
+                
+                // Wrap strings in quotes in case food names have commas
+                csvContent += `"${displayTime}","${item.name}",${item.cals},${item.pro},${item.carbs}\n`;
+            });
+
+            // Create a Blob and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            // Set filename with today's date
+            let today = new Date().toISOString().split('T')[0];
+            link.setAttribute("href", url);
+            link.setAttribute("download", `bulking_log_${today}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function generateFeedback(totalCals, totalPro) {

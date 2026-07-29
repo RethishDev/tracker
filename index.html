@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hostel Bulking Tracker</title>
+    <title>Ultimate Bulking Tracker</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -13,10 +13,9 @@
             --border: #ced6e0;
             --success: #2ed573;
             --accent: #ffa502;
+            --info: #1e90ff;
         }
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -35,131 +34,33 @@
             margin-bottom: 20px;
         }
         
-        /* Dashboard Stats */
-        .dashboard {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            text-align: center;
-        }
-        .stat-box {
-            background: var(--bg-color);
-            padding: 15px 10px;
-            border-radius: 8px;
-            flex: 1;
-            border: 1px solid var(--border);
-            font-size: 14px;
-        }
-        .stat-box span { 
-            display: block; 
-            font-size: 22px; 
-            font-weight: bold; 
-            color: var(--primary); 
-            margin-top: 5px;
-        }
+        .dashboard { display: flex; justify-content: space-between; gap: 15px; text-align: center; }
+        .stat-box { background: var(--bg-color); padding: 15px 10px; border-radius: 8px; flex: 1; border: 1px solid var(--border); font-size: 14px; }
+        .stat-box span { display: block; font-size: 22px; font-weight: bold; color: var(--primary); margin-top: 5px; }
 
-        /* Schedule / To-Do List */
-        .schedule-list { list-style: none; padding: 0; margin: 0; }
-        .schedule-item {
-            background: #f1f2f6;
-            margin-bottom: 10px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border-left: 5px solid var(--accent);
-        }
-        .schedule-time { 
-            font-weight: bold; 
-            color: var(--accent); 
-            display: block; 
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        .schedule-food { font-weight: bold; font-size: 16px; }
-        .schedule-macros { 
-            font-size: 13px; 
-            color: #57606f; 
-            margin-top: 6px; 
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* Forms */
-        .form-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        input, select, button {
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 16px;
-            width: 100%;
-        }
+        .form-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select, button { padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; width: 100%; }
         select { background-color: #f1f2f6; cursor: pointer; font-weight: bold; }
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+        .qty-box { width: 80px; text-align: center; font-weight: bold; }
+        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { background-color: #ff6b81; }
         
-        /* Logs & Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
+        .action-buttons { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .log-list { list-style: none; padding: 0; margin: 0; }
-        .log-item {
-            background: var(--bg-color);
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid var(--primary);
-        }
+        .log-item { background: var(--bg-color); margin-bottom: 10px; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
         .log-details strong { display: block; margin-bottom: 5px; font-size: 16px; }
-        .log-details span {
-            font-size: 13px;
-            color: #57606f;
-            margin-right: 12px;
-            display: inline-block;
-        }
-        .delete-btn {
-            background: transparent;
-            color: var(--primary);
-            width: auto;
-            padding: 8px 12px;
-            border: 1px solid var(--primary);
-            margin-left: 10px;
-        }
-        .delete-btn:hover { background: var(--primary); color: white; }
+        .log-details span { font-size: 13px; color: #57606f; margin-right: 12px; display: inline-block; }
+        .delete-btn { background: transparent; color: var(--primary); width: auto; padding: 8px 12px; border: 1px solid var(--primary); margin-left: 10px; }
+        
+        .feedback-box { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; transition: 0.3s; }
 
-        .feedback-box {
-            background-color: #eccc68;
-            color: #2f3542;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        /* Mobile Responsiveness */
         @media (max-width: 600px) {
             .dashboard { flex-wrap: wrap; gap: 10px; }
             .stat-box { min-width: 45%; flex: 1 1 45%; }
             .form-group { flex-direction: column; gap: 10px; }
+            .qty-box { width: 100%; }
             .log-item { flex-direction: column; align-items: flex-start; }
             .delete-btn { margin-left: 0; margin-top: 15px; width: 100%; }
-            .schedule-macros { gap: 10px; }
         }
     </style>
 </head>
@@ -179,71 +80,66 @@
         <div class="stat-box">Carbs<br><span id="carbTotal">0</span>g / 340g</div>
     </div>
 
-    <!-- To-Do Schedule Section -->
-    <div class="card">
-        <h3>🗓️ Daily Diet Schedule</h3>
-        <p style="font-size: 14px; color: #57606f; margin-top: -10px; text-align: center; margin-bottom: 15px;">Your blueprint to hit 55kg. Use the Quick Select below to log these after eating.</p>
-        
-        <ul class="schedule-list">
-            <li class="schedule-item">
-                <span class="schedule-time">8:30 AM - Breakfast</span>
-                <span class="schedule-food">Hostel Breakfast + 2 Boiled Eggs + 1 Banana</span>
-                <div class="schedule-macros">
-                    <span>🔥 590 kcal</span> | <span>🥩 21g Pro</span> | <span>🍞 76g Carbs</span>
-                </div>
-            </li>
-            <li class="schedule-item">
-                <span class="schedule-time">1:00 PM - Lunch</span>
-                <span class="schedule-food">Hostel Lunch + 1 Cup Probiotic Curd</span>
-                <div class="schedule-macros">
-                    <span>🔥 600 kcal</span> | <span>🥩 16g Pro</span> | <span>🍞 86g Carbs</span>
-                </div>
-            </li>
-            <li class="schedule-item">
-                <span class="schedule-time">5:30 PM - Evening Snack</span>
-                <span class="schedule-food">Kettle Oats Power Bowl (Oats, PB, Banana)</span>
-                <div class="schedule-macros">
-                    <span>🔥 500 kcal</span> | <span>🥩 15g Pro</span> | <span>🍞 65g Carbs</span>
-                </div>
-            </li>
-            <li class="schedule-item">
-                <span class="schedule-time">8:30 PM - Dinner</span>
-                <span class="schedule-food">Hostel Dinner (Rice/Roti, Dal/Meat)</span>
-                <div class="schedule-macros">
-                    <span>🔥 550 kcal</span> | <span>🥩 18g Pro</span> | <span>🍞 80g Carbs</span>
-                </div>
-            </li>
-            <li class="schedule-item">
-                <span class="schedule-time">10:00 PM - Pre-Bed Snack</span>
-                <span class="schedule-food">Handful of Peanuts & Roasted Chana</span>
-                <div class="schedule-macros">
-                    <span>🔥 200 kcal</span> | <span>🥩 8g Pro</span> | <span>🍞 10g Carbs</span>
-                </div>
-            </li>
-        </ul>
-    </div>
-
     <!-- Data Logging Section -->
     <div class="card">
-        <h3>Log Your Meal</h3>
+        <h3>Smart Food Logger</h3>
         
-        <div class="form-group">
-            <select id="quickSelect" onchange="autoFill()">
-                <option value="">-- Quick Select: Choose from your plan --</option>
-                <option value='{"name":"Hostel Breakfast","cals":350,"pro":8,"carbs":50}'>Hostel Breakfast</option>
-                <option value='{"name":"2 Boiled Eggs (Kettle)","cals":140,"pro":12,"carbs":1}'>2 Boiled Eggs</option>
-                <option value='{"name":"1 Banana (Poovan/Robusta)","cals":100,"pro":1,"carbs":25}'>1 Banana</option>
-                <option value='{"name":"Hostel Lunch","cals":500,"pro":12,"carbs":80}'>Hostel Lunch</option>
-                <option value='{"name":"Probiotic Curd (1 Cup)","cals":100,"pro":4,"carbs":6}'>Probiotic Curd (1 Cup)</option>
-                <option value='{"name":"Kettle Oats Power Bowl","cals":500,"pro":15,"carbs":65}'>Kettle Oats Power Bowl</option>
-                <option value='{"name":"Hostel Dinner","cals":550,"pro":18,"carbs":80}'>Hostel Dinner</option>
-                <option value='{"name":"Peanuts & Chana Snack","cals":200,"pro":8,"carbs":10}'>Peanuts & Roasted Chana</option>
-                <option value='{"name":"Soya Chunks (40g Soaked)","cals":140,"pro":20,"carbs":13}'>Soya Chunks (40g)</option>
+        <div class="form-group" style="flex-direction: row; gap: 10px;">
+            <select id="foodSelect" onchange="calculateMacros()" style="flex: 1;">
+                <option value="">-- Choose Food --</option>
+                
+                <optgroup label="Room / Kettle Foods">
+                    <option value='{"name":"Boiled Egg","cals":70,"pro":6,"carbs":0.5}'>Boiled Egg (1 egg)</option>
+                    <option value='{"name":"Banana (Poovan/Robusta)","cals":100,"pro":1,"carbs":25}'>Banana (1 piece)</option>
+                    <option value='{"name":"Soya Chunks (10g)","cals":35,"pro":5.2,"carbs":3.3}'>Soya Chunks (per 10g)</option>
+                    <option value='{"name":"Oats (10g)","cals":38,"pro":1.3,"carbs":6.5}'>Oats (per 10g)</option>
+                    <option value='{"name":"Pintola Peanut Butter (1 Tbsp)","cals":95,"pro":4.5,"carbs":3}'>Peanut Butter (1 Tbsp)</option>
+                    <option value='{"name":"Milky Mist Curd","cals":52,"pro":3,"carbs":4.4}'>Milky Mist Curd (85g cup)</option>
+                    <option value='{"name":"Roasted Peanuts (10g)","cals":56,"pro":2.5,"carbs":1.6}'>Roasted Peanuts (per 10g)</option>
+                </optgroup>
+
+                <optgroup label="Hostel Mess (Breads & Rice)">
+                    <option value='{"name":"Chapathi","cals":100,"pro":3,"carbs":18}'>Chapathi (1 piece)</option>
+                    <option value='{"name":"Porotta","cals":300,"pro":6,"carbs":40}'>Porotta (1 piece)</option>
+                    <option value='{"name":"Appam","cals":120,"pro":2,"carbs":25}'>Appam (1 piece)</option>
+                    <option value='{"name":"White Rice","cals":200,"pro":4,"carbs":45}'>White Rice (1 standard cup)</option>
+                    <option value='{"name":"Upma","cals":250,"pro":6,"carbs":40}'>Upma (1 standard cup)</option>
+                </optgroup>
+
+                <optgroup label="Hostel Mess (Curries & Meals)">
+                    <option value='{"name":"Kadala Curry","cals":150,"pro":8,"carbs":20}'>Kadala Curry (1 cup)</option>
+                    <option value='{"name":"Green Peas Curry","cals":130,"pro":7,"carbs":18}'>Green Peas Curry (1 cup)</option>
+                    <option value='{"name":"Dal Curry","cals":120,"pro":6,"carbs":18}'>Dal Curry (1 cup)</option>
+                    <option value='{"name":"Chicken Curry","cals":250,"pro":20,"carbs":10}'>Chicken Curry (2 pieces + gravy)</option>
+                    <option value='{"name":"Beef Curry","cals":300,"pro":22,"carbs":10}'>Beef Curry (1 cup)</option>
+                    <option value='{"name":"Moru Curry","cals":80,"pro":3,"carbs":7}'>Moru Curry (1 cup)</option>
+                    <option value='{"name":"Chicken Biriyani","cals":500,"pro":20,"carbs":60}'>Chicken Biriyani (1 standard portion)</option>
+                    <option value='{"name":"Rice with Fried Fish","cals":400,"pro":20,"carbs":45}'>Rice + 1 Fried Fish slice</option>
+                </optgroup>
+
+                <optgroup label="Kerala Home Foods">
+                    <option value='{"name":"Puttu (1 Kutti)","cals":200,"pro":3,"carbs":40}'>Puttu (1 piece/kutti)</option>
+                    <option value='{"name":"Idiyappam","cals":60,"pro":1,"carbs":12}'>Idiyappam (1 piece)</option>
+                    <option value='{"name":"Dosa","cals":120,"pro":3,"carbs":20}'>Dosa (1 piece)</option>
+                    <option value='{"name":"Idli","cals":60,"pro":2,"carbs":12}'>Idli (1 piece)</option>
+                    <option value='{"name":"Kappa (Tapioca)","cals":250,"pro":2,"carbs":60}'>Kappa / Tapioca (1 cup)</option>
+                    <option value='{"name":"Fish Curry (Mathi/Ayala)","cals":150,"pro":15,"carbs":5}'>Fish Curry (1 cup + fish)</option>
+                </optgroup>
+
+                <optgroup label="Ernakulam Outings (Budget Treats)">
+                    <option value='{"name":"Sharjah Shake","cals":350,"pro":10,"carbs":50}'>Sharjah Shake (1 Glass)</option>
+                    <option value='{"name":"Avocado / Butter Fruit Shake","cals":400,"pro":8,"carbs":45}'>Avocado Shake (1 Glass)</option>
+                    <option value='{"name":"Fresh Fruit Juice (with sugar)","cals":150,"pro":1,"carbs":35}'>Fresh Juice (1 Glass)</option>
+                    <option value='{"name":"Shawarma Roll","cals":400,"pro":15,"carbs":40}'>Shawarma Roll (1 piece)</option>
+                    <option value='{"name":"Alfaham Chicken (Quarter)","cals":350,"pro":30,"carbs":5}'>Alfaham Chicken (Quarter / 1 Leg piece)</option>
+                </optgroup>
             </select>
+            
+            <input type="number" id="foodQuantity" class="qty-box" placeholder="Qty" value="1" min="0.5" step="0.5" oninput="calculateMacros()">
         </div>
 
         <div class="form-group">
-            <input type="text" id="foodName" placeholder="Or type a custom food name..." required>
+            <input type="text" id="foodName" placeholder="Food Name (Auto-fills or Type Custom)" required>
         </div>
         <div class="form-group">
             <input type="number" id="foodCals" placeholder="Calories" required>
@@ -265,25 +161,26 @@
             <button onclick="clearDay()" style="background-color: #747d8c; flex: 1;">🗑️ Clear Today's Data</button>
         </div>
 
-        <ul class="log-list" id="logList">
-            <!-- Entries will appear here -->
-        </ul>
+        <ul class="log-list" id="logList"></ul>
     </div>
 
     <script>
         document.getElementById('foodTime').value = new Date().toLocaleTimeString('en-GB', { hour: "numeric", minute: "numeric" });
+        const TARGET_CALS = 2400; const TARGET_PRO = 90;
 
-        const TARGET_CALS = 2400;
-        const TARGET_PRO = 90;
+        function calculateMacros() {
+            let select = document.getElementById('foodSelect');
+            let qty = parseFloat(document.getElementById('foodQuantity').value) || 1;
 
-        function autoFill() {
-            let select = document.getElementById('quickSelect');
             if (select.value) {
                 let data = JSON.parse(select.value);
-                document.getElementById('foodName').value = data.name;
-                document.getElementById('foodCals').value = data.cals;
-                document.getElementById('foodPro').value = data.pro;
-                document.getElementById('foodCarbs').value = data.carbs;
+                let finalName = data.name;
+                if(qty !== 1) { finalName = data.name + " (x" + qty + ")"; }
+                
+                document.getElementById('foodName').value = finalName;
+                document.getElementById('foodCals').value = Math.round(data.cals * qty);
+                document.getElementById('foodPro').value = Math.round(data.pro * qty);
+                document.getElementById('foodCarbs').value = Math.round(data.carbs * qty);
             }
         }
 
@@ -300,8 +197,7 @@
             let time = document.getElementById('foodTime').value;
 
             if(!name || isNaN(cals) || isNaN(pro) || isNaN(carbs)) {
-                alert("Please fill all nutritional fields with numbers!");
-                return;
+                alert("Please fill all nutritional fields with numbers!"); return;
             }
 
             let entry = { id: Date.now(), name, cals, pro, carbs, time };
@@ -313,7 +209,8 @@
             document.getElementById('foodCals').value = '';
             document.getElementById('foodPro').value = '';
             document.getElementById('foodCarbs').value = '';
-            document.getElementById('quickSelect').value = ''; 
+            document.getElementById('foodSelect').value = ''; 
+            document.getElementById('foodQuantity').value = '1'; 
             
             loadData();
         }
@@ -327,87 +224,90 @@
 
         function clearDay() {
             if(confirm("Are you sure you want to clear today's log to start fresh?")) {
-                localStorage.removeItem('bulkingData');
-                loadData();
+                localStorage.removeItem('bulkingData'); loadData();
             }
         }
 
         function downloadLog() {
             let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
-            if (records.length === 0) {
-                alert("You haven't logged any meals yet today!");
-                return;
-            }
-
-            // Create CSV Headers
+            if (records.length === 0) { alert("You haven't logged any meals yet today!"); return; }
             let csvContent = "Time,Food Item,Calories,Protein(g),Carbs(g)\n";
-
-            // Add Data Rows
             records.forEach(item => {
                 let timeParts = item.time.split(':');
                 let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
                 let hours = timeParts[0] % 12 || 12;
                 let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
-                
-                // Wrap strings in quotes in case food names have commas
                 csvContent += `"${displayTime}","${item.name}",${item.cals},${item.pro},${item.carbs}\n`;
             });
-
-            // Create a Blob and trigger download
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            
-            // Set filename with today's date
             let today = new Date().toISOString().split('T')[0];
             link.setAttribute("href", url);
             link.setAttribute("download", `bulking_log_${today}.csv`);
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        function generateFeedback(totalCals, totalPro) {
+        function generateFeedback(totalCals, totalPro, totalCarbs) {
             let feedback = document.getElementById('feedbackText');
             let box = document.getElementById('suggestionBox');
             let hour = new Date().getHours();
-
+            
             box.style.display = 'block';
 
+            // 1. Success States
+            if (totalCals >= TARGET_CALS && totalPro >= TARGET_PRO) {
+                feedback.innerText = "🏆 Target Hit! 2400 Cals & 90g Protein smashed. Rest up and let the muscles grow!";
+                box.style.backgroundColor = "var(--success)";
+                box.style.color = "white";
+                return;
+            }
+
+            // 2. Macro Imbalance Warnings
+            if (totalCals > 1500 && totalPro < (totalCals / 100) * 2) { 
+                // E.g. eating lots of carbs/fats but severely lacking protein
+                feedback.innerText = "⚠️ You are eating plenty of calories, but your protein is way too low! Soak some soya chunks or boil eggs ASAP.";
+                box.style.backgroundColor = "var(--primary)";
+                box.style.color = "white";
+                return;
+            }
+
+            // 3. Time-Based Reminders
+            box.style.backgroundColor = "var(--accent)"; // Default yellow for warnings
+            box.style.color = "var(--text)";
+
             if (totalCals === 0) {
-                feedback.innerText = "Time to start eating! Don't forget to have some warm water first to help your stomach.";
-            } else if (totalCals < TARGET_CALS * 0.4 && hour > 14) {
-                feedback.innerText = "It's past 2 PM and you're behind on calories! Time to make some kettle oats with peanut butter and banana.";
-            } else if (totalPro < TARGET_PRO * 0.5 && hour > 18) {
-                feedback.innerText = "Protein is running low tonight! Consider soaking some soya chunks in the kettle or boiling extra eggs.";
-            } else if (totalCals >= TARGET_CALS && totalPro >= TARGET_PRO) {
-                feedback.innerText = "Target hit! Great job. Make sure you've had your probiotic curd today for digestion!";
-                box.style.backgroundColor = "#2ed573";
-                feedback.style.color = "white";
-            } else {
-                feedback.innerText = "Keep going! Remember to chew thoroughly and eat at a steady pace to avoid gas build-up.";
+                feedback.innerText = "🌅 Time to start eating! Fuel up your body for the day.";
+                box.style.backgroundColor = "var(--info)";
+                box.style.color = "white";
+            } 
+            else if (hour < 11 && totalCals < 300) {
+                feedback.innerText = "🕗 It's morning! Don't skip breakfast. Make your oats or grab some eggs before work.";
+            }
+            else if (hour >= 13 && hour <= 16 && totalPro < 40) {
+                feedback.innerText = "🕑 Mid-day check: Your protein is running behind. Make sure lunch has chicken, fish, or eggs!";
+            }
+            else if (hour >= 17 && hour <= 19 && totalCals < 1500) {
+                feedback.innerText = "🕔 Evening already! You are behind on calories. Grab a shake if you are out, or eat your peanuts on the commute!";
+            }
+            else if (hour >= 21 && totalPro < TARGET_PRO) {
+                feedback.innerText = `🌙 Almost bedtime! You still need ${TARGET_PRO - totalPro}g of protein. Time for Soya Chunks or Milk.`;
+            }
+            else {
+                feedback.innerText = "🔥 You are on track! Keep eating clean and steady.";
                 box.style.backgroundColor = "#eccc68";
-                feedback.style.color = "#2f3542";
             }
         }
 
         function updateUI(records) {
-            let list = document.getElementById('logList');
-            list.innerHTML = '';
-            
+            let list = document.getElementById('logList'); list.innerHTML = '';
             let totalCals = 0, totalPro = 0, totalCarbs = 0;
-
             records.forEach(item => {
-                totalCals += item.cals;
-                totalPro += item.pro;
-                totalCarbs += item.carbs;
-
+                totalCals += item.cals; totalPro += item.pro; totalCarbs += item.carbs;
                 let timeParts = item.time.split(':');
                 let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
                 let hours = timeParts[0] % 12 || 12;
                 let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
-
                 list.innerHTML += `
                     <li class="log-item">
                         <div class="log-details">
@@ -420,14 +320,13 @@
                     </li>
                 `;
             });
-
             document.getElementById('calTotal').innerText = totalCals;
             document.getElementById('proTotal').innerText = totalPro;
             document.getElementById('carbTotal').innerText = totalCarbs;
-
-            generateFeedback(totalCals, totalPro);
+            
+            // Pass all three macros to the new feedback system
+            generateFeedback(totalCals, totalPro, totalCarbs);
         }
-
         loadData();
     </script>
 </body>

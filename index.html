@@ -41,9 +41,15 @@
         .form-group { display: flex; gap: 10px; margin-bottom: 15px; }
         input, select, button { padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; width: 100%; }
         select { background-color: #f1f2f6; cursor: pointer; font-weight: bold; }
-        .qty-box { width: 80px; text-align: center; font-weight: bold; }
+        
+        /* Fixed Mobile Layout Classes */
+        .picker-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .food-select-container { flex: 3; }
+        .qty-box-container { flex: 1; }
+        
         button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { background-color: #ff6b81; }
+        .btn-diet { background-color: var(--info); margin-bottom: 20px; font-size: 18px; padding: 15px; }
         
         .action-buttons { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .log-list { list-style: none; padding: 0; margin: 0; }
@@ -54,11 +60,19 @@
         
         .feedback-box { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; transition: 0.3s; }
 
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 20px; }
+        .modal-content { background-color: var(--card-bg); margin: 5% auto; padding: 25px; border-radius: 12px; width: 92%; max-width: 600px; line-height: 1.6; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top: -10px; }
+        .close:hover { color: black; }
+        .plan-section { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .plan-section h4 { color: var(--primary); margin-bottom: 5px; margin-top: 0; }
+
         @media (max-width: 600px) {
             .dashboard { flex-wrap: wrap; gap: 10px; }
             .stat-box { min-width: 45%; flex: 1 1 45%; }
-            .form-group { flex-direction: column; gap: 10px; }
-            .qty-box { width: 100%; }
+            .form-group, .picker-row { flex-direction: column; gap: 10px; }
+            .food-select-container, .qty-box-container { width: 100%; }
             .log-item { flex-direction: column; align-items: flex-start; }
             .delete-btn { margin-left: 0; margin-top: 15px; width: 100%; }
         }
@@ -67,6 +81,42 @@
 <body>
 
     <h1>Bulking Tracker</h1>
+
+    <!-- Diet Plan Button -->
+    <button class="btn-diet" onclick="openModal()">📖 View Daily Bulking Diet Plan</button>
+
+    <!-- Diet Plan Modal -->
+    <div id="dietModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="text-align:left; color:var(--text);">🚀 47kg to 55kg Master Plan</h2>
+            
+            <div class="plan-section">
+                <h4>1. The 10-to-7 Workday Schedule</h4>
+                <ul>
+                    <li><strong>8:30 AM (Wake Up):</strong> Kettle Oats (50g) + Hot Water + 1-2 Spoons Peanut Butter + 1 Banana. (Clean energy).</li>
+                    <li><strong>11:30 AM (Office Desk):</strong> 2 Boiled Eggs (boiled in morning) + 1 Banana.</li>
+                    <li><strong>1:30 PM (Lunch):</strong> Heavy Rice/Roti with Dal or Chicken/Fish. Eat until full.</li>
+                    <li><strong>6:30 PM (Commute):</strong> 1 Handful (30g) of Sand-Roasted Peanuts. (Prevents hunger crash in traffic).</li>
+                    <li><strong>8:30 PM (Dinner):</strong> Hostel Dinner + 1 small ₹12 Milky Mist Plain Curd. (Aids digestion).</li>
+                    <li><strong>9:45 PM (Pre-Bed):</strong> 40g Soya Chunks soaked in kettle water for 15 mins. (The ultimate protein cheat code).</li>
+                </ul>
+            </div>
+
+            <div class="plan-section">
+                <h4>2. The "No-Gas" Gut Rules</h4>
+                <ul>
+                    <li><strong>Avoid:</strong> Deep-fried bakery items (samosas, puffs), heavy ghee/oils before bed, and flavored yogurts with added sugar.</li>
+                    <li><strong>Do:</strong> Drink warm water from the kettle after heavy meals. Shower <em>before</em> you eat, not after. Eat curd daily to maintain probiotics.</li>
+                </ul>
+            </div>
+
+            <div class="plan-section" style="border:none;">
+                <h4>3. The Targets</h4>
+                <p>To gain ~2.3 kg per month, you must hit: <strong>2400 Calories</strong> and <strong>90g Protein</strong> every single day.</p>
+            </div>
+        </div>
+    </div>
 
     <!-- AI Feedback System -->
     <div class="card" id="suggestionBox" style="display: none; padding: 0; margin-bottom: 20px;">
@@ -84,58 +134,61 @@
     <div class="card">
         <h3>Smart Food Logger</h3>
         
-        <div class="form-group" style="flex-direction: row; gap: 10px;">
-            <select id="foodSelect" onchange="calculateMacros()" style="flex: 1;">
-                <option value="">-- Choose Food --</option>
-                
-                <optgroup label="Room / Kettle Foods">
-                    <option value='{"name":"Boiled Egg","cals":70,"pro":6,"carbs":0.5}'>Boiled Egg (1 egg)</option>
-                    <option value='{"name":"Banana (Poovan/Robusta)","cals":100,"pro":1,"carbs":25}'>Banana (1 piece)</option>
-                    <option value='{"name":"Soya Chunks (10g)","cals":35,"pro":5.2,"carbs":3.3}'>Soya Chunks (per 10g)</option>
-                    <option value='{"name":"Oats (10g)","cals":38,"pro":1.3,"carbs":6.5}'>Oats (per 10g)</option>
-                    <option value='{"name":"Pintola Peanut Butter (1 Tbsp)","cals":95,"pro":4.5,"carbs":3}'>Peanut Butter (1 Tbsp)</option>
-                    <option value='{"name":"Milky Mist Curd","cals":52,"pro":3,"carbs":4.4}'>Milky Mist Curd (85g cup)</option>
-                    <option value='{"name":"Roasted Peanuts (10g)","cals":56,"pro":2.5,"carbs":1.6}'>Roasted Peanuts (per 10g)</option>
-                </optgroup>
+        <div class="picker-row">
+            <div class="food-select-container">
+                <select id="foodSelect" onchange="calculateMacros()">
+                    <option value="">-- Choose Food --</option>
+                    
+                    <optgroup label="Room / Kettle Foods">
+                        <option value='{"name":"Boiled Egg","cals":70,"pro":6,"carbs":0.5}'>Boiled Egg (1 egg)</option>
+                        <option value='{"name":"Banana (Poovan/Robusta)","cals":100,"pro":1,"carbs":25}'>Banana (1 piece)</option>
+                        <option value='{"name":"Soya Chunks (10g)","cals":35,"pro":5.2,"carbs":3.3}'>Soya Chunks (per 10g)</option>
+                        <option value='{"name":"Oats (10g)","cals":38,"pro":1.3,"carbs":6.5}'>Oats (per 10g)</option>
+                        <option value='{"name":"Pintola Peanut Butter (1 Tbsp)","cals":95,"pro":4.5,"carbs":3}'>Peanut Butter (1 Tbsp)</option>
+                        <option value='{"name":"Milky Mist Curd","cals":52,"pro":3,"carbs":4.4}'>Milky Mist Curd (85g cup)</option>
+                        <option value='{"name":"Roasted Peanuts (10g)","cals":56,"pro":2.5,"carbs":1.6}'>Roasted Peanuts (per 10g)</option>
+                    </optgroup>
 
-                <optgroup label="Hostel Mess (Breads & Rice)">
-                    <option value='{"name":"Chapathi","cals":100,"pro":3,"carbs":18}'>Chapathi (1 piece)</option>
-                    <option value='{"name":"Porotta","cals":300,"pro":6,"carbs":40}'>Porotta (1 piece)</option>
-                    <option value='{"name":"Appam","cals":120,"pro":2,"carbs":25}'>Appam (1 piece)</option>
-                    <option value='{"name":"White Rice","cals":200,"pro":4,"carbs":45}'>White Rice (1 standard cup)</option>
-                    <option value='{"name":"Upma","cals":250,"pro":6,"carbs":40}'>Upma (1 standard cup)</option>
-                </optgroup>
+                    <optgroup label="Hostel Mess (Breads & Rice)">
+                        <option value='{"name":"Chapathi","cals":100,"pro":3,"carbs":18}'>Chapathi (1 piece)</option>
+                        <option value='{"name":"Porotta","cals":300,"pro":6,"carbs":40}'>Porotta (1 piece)</option>
+                        <option value='{"name":"Appam","cals":120,"pro":2,"carbs":25}'>Appam (1 piece)</option>
+                        <option value='{"name":"White Rice","cals":200,"pro":4,"carbs":45}'>White Rice (1 standard cup)</option>
+                        <option value='{"name":"Upma","cals":250,"pro":6,"carbs":40}'>Upma (1 standard cup)</option>
+                    </optgroup>
 
-                <optgroup label="Hostel Mess (Curries & Meals)">
-                    <option value='{"name":"Kadala Curry","cals":150,"pro":8,"carbs":20}'>Kadala Curry (1 cup)</option>
-                    <option value='{"name":"Green Peas Curry","cals":130,"pro":7,"carbs":18}'>Green Peas Curry (1 cup)</option>
-                    <option value='{"name":"Dal Curry","cals":120,"pro":6,"carbs":18}'>Dal Curry (1 cup)</option>
-                    <option value='{"name":"Chicken Curry","cals":250,"pro":20,"carbs":10}'>Chicken Curry (2 pieces + gravy)</option>
-                    <option value='{"name":"Beef Curry","cals":300,"pro":22,"carbs":10}'>Beef Curry (1 cup)</option>
-                    <option value='{"name":"Moru Curry","cals":80,"pro":3,"carbs":7}'>Moru Curry (1 cup)</option>
-                    <option value='{"name":"Chicken Biriyani","cals":500,"pro":20,"carbs":60}'>Chicken Biriyani (1 standard portion)</option>
-                    <option value='{"name":"Rice with Fried Fish","cals":400,"pro":20,"carbs":45}'>Rice + 1 Fried Fish slice</option>
-                </optgroup>
+                    <optgroup label="Hostel Mess (Curries & Meals)">
+                        <option value='{"name":"Kadala Curry","cals":150,"pro":8,"carbs":20}'>Kadala Curry (1 cup)</option>
+                        <option value='{"name":"Green Peas Curry","cals":130,"pro":7,"carbs":18}'>Green Peas Curry (1 cup)</option>
+                        <option value='{"name":"Dal Curry","cals":120,"pro":6,"carbs":18}'>Dal Curry (1 cup)</option>
+                        <option value='{"name":"Chicken Curry","cals":250,"pro":20,"carbs":10}'>Chicken Curry (2 pieces + gravy)</option>
+                        <option value='{"name":"Beef Curry","cals":300,"pro":22,"carbs":10}'>Beef Curry (1 cup)</option>
+                        <option value='{"name":"Moru Curry","cals":80,"pro":3,"carbs":7}'>Moru Curry (1 cup)</option>
+                        <option value='{"name":"Chicken Biriyani","cals":500,"pro":20,"carbs":60}'>Chicken Biriyani (1 standard portion)</option>
+                        <option value='{"name":"Rice with Fried Fish","cals":400,"pro":20,"carbs":45}'>Rice + 1 Fried Fish slice</option>
+                    </optgroup>
 
-                <optgroup label="Kerala Home Foods">
-                    <option value='{"name":"Puttu (1 Kutti)","cals":200,"pro":3,"carbs":40}'>Puttu (1 piece/kutti)</option>
-                    <option value='{"name":"Idiyappam","cals":60,"pro":1,"carbs":12}'>Idiyappam (1 piece)</option>
-                    <option value='{"name":"Dosa","cals":120,"pro":3,"carbs":20}'>Dosa (1 piece)</option>
-                    <option value='{"name":"Idli","cals":60,"pro":2,"carbs":12}'>Idli (1 piece)</option>
-                    <option value='{"name":"Kappa (Tapioca)","cals":250,"pro":2,"carbs":60}'>Kappa / Tapioca (1 cup)</option>
-                    <option value='{"name":"Fish Curry (Mathi/Ayala)","cals":150,"pro":15,"carbs":5}'>Fish Curry (1 cup + fish)</option>
-                </optgroup>
+                    <optgroup label="Kerala Home Foods">
+                        <option value='{"name":"Puttu (1 Kutti)","cals":200,"pro":3,"carbs":40}'>Puttu (1 piece/kutti)</option>
+                        <option value='{"name":"Idiyappam","cals":60,"pro":1,"carbs":12}'>Idiyappam (1 piece)</option>
+                        <option value='{"name":"Dosa","cals":120,"pro":3,"carbs":20}'>Dosa (1 piece)</option>
+                        <option value='{"name":"Idli","cals":60,"pro":2,"carbs":12}'>Idli (1 piece)</option>
+                        <option value='{"name":"Kappa (Tapioca)","cals":250,"pro":2,"carbs":60}'>Kappa / Tapioca (1 cup)</option>
+                        <option value='{"name":"Fish Curry (Mathi/Ayala)","cals":150,"pro":15,"carbs":5}'>Fish Curry (1 cup + fish)</option>
+                    </optgroup>
 
-                <optgroup label="Ernakulam Outings (Budget Treats)">
-                    <option value='{"name":"Sharjah Shake","cals":350,"pro":10,"carbs":50}'>Sharjah Shake (1 Glass)</option>
-                    <option value='{"name":"Avocado / Butter Fruit Shake","cals":400,"pro":8,"carbs":45}'>Avocado Shake (1 Glass)</option>
-                    <option value='{"name":"Fresh Fruit Juice (with sugar)","cals":150,"pro":1,"carbs":35}'>Fresh Juice (1 Glass)</option>
-                    <option value='{"name":"Shawarma Roll","cals":400,"pro":15,"carbs":40}'>Shawarma Roll (1 piece)</option>
-                    <option value='{"name":"Alfaham Chicken (Quarter)","cals":350,"pro":30,"carbs":5}'>Alfaham Chicken (Quarter / 1 Leg piece)</option>
-                </optgroup>
-            </select>
-            
-            <input type="number" id="foodQuantity" class="qty-box" placeholder="Qty" value="1" min="0.5" step="0.5" oninput="calculateMacros()">
+                    <optgroup label="Ernakulam Outings (Budget Treats)">
+                        <option value='{"name":"Sharjah Shake","cals":350,"pro":10,"carbs":50}'>Sharjah Shake (1 Glass)</option>
+                        <option value='{"name":"Avocado / Butter Fruit Shake","cals":400,"pro":8,"carbs":45}'>Avocado Shake (1 Glass)</option>
+                        <option value='{"name":"Fresh Fruit Juice (with sugar)","cals":150,"pro":1,"carbs":35}'>Fresh Juice (1 Glass)</option>
+                        <option value='{"name":"Shawarma Roll","cals":400,"pro":15,"carbs":40}'>Shawarma Roll (1 piece)</option>
+                        <option value='{"name":"Alfaham Chicken (Quarter)","cals":350,"pro":30,"carbs":5}'>Alfaham Chicken (Quarter / 1 Leg piece)</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="qty-box-container">
+                <input type="number" id="foodQuantity" placeholder="Qty" value="1" min="0.5" step="0.5" oninput="calculateMacros()">
+            </div>
         </div>
 
         <div class="form-group">
@@ -167,6 +220,14 @@
     <script>
         document.getElementById('foodTime').value = new Date().toLocaleTimeString('en-GB', { hour: "numeric", minute: "numeric" });
         const TARGET_CALS = 2400; const TARGET_PRO = 90;
+
+        // Modal Logic
+        function openModal() { document.getElementById("dietModal").style.display = "block"; }
+        function closeModal() { document.getElementById("dietModal").style.display = "none"; }
+        window.onclick = function(event) {
+            let modal = document.getElementById("dietModal");
+            if (event.target == modal) { modal.style.display = "none"; }
+        }
 
         function calculateMacros() {
             let select = document.getElementById('foodSelect');
@@ -255,25 +316,20 @@
             
             box.style.display = 'block';
 
-            // 1. Success States
             if (totalCals >= TARGET_CALS && totalPro >= TARGET_PRO) {
                 feedback.innerText = "🏆 Target Hit! 2400 Cals & 90g Protein smashed. Rest up and let the muscles grow!";
                 box.style.backgroundColor = "var(--success)";
                 box.style.color = "white";
                 return;
             }
-
-            // 2. Macro Imbalance Warnings
             if (totalCals > 1500 && totalPro < (totalCals / 100) * 2) { 
-                // E.g. eating lots of carbs/fats but severely lacking protein
                 feedback.innerText = "⚠️ You are eating plenty of calories, but your protein is way too low! Soak some soya chunks or boil eggs ASAP.";
                 box.style.backgroundColor = "var(--primary)";
                 box.style.color = "white";
                 return;
             }
 
-            // 3. Time-Based Reminders
-            box.style.backgroundColor = "var(--accent)"; // Default yellow for warnings
+            box.style.backgroundColor = "var(--accent)"; 
             box.style.color = "var(--text)";
 
             if (totalCals === 0) {
@@ -295,39 +351,4 @@
             }
             else {
                 feedback.innerText = "🔥 You are on track! Keep eating clean and steady.";
-                box.style.backgroundColor = "#eccc68";
-            }
-        }
-
-        function updateUI(records) {
-            let list = document.getElementById('logList'); list.innerHTML = '';
-            let totalCals = 0, totalPro = 0, totalCarbs = 0;
-            records.forEach(item => {
-                totalCals += item.cals; totalPro += item.pro; totalCarbs += item.carbs;
-                let timeParts = item.time.split(':');
-                let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
-                let hours = timeParts[0] % 12 || 12;
-                let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
-                list.innerHTML += `
-                    <li class="log-item">
-                        <div class="log-details">
-                            <strong>${item.name}</strong> <span>at ${displayTime}</span><br>
-                            <span>🔥 ${item.cals} kcal</span>
-                            <span>🥩 ${item.pro}g Protein</span>
-                            <span>🍞 ${item.carbs}g Carbs</span>
-                        </div>
-                        <button class="delete-btn" onclick="deleteEntry(${item.id})">Delete</button>
-                    </li>
-                `;
-            });
-            document.getElementById('calTotal').innerText = totalCals;
-            document.getElementById('proTotal').innerText = totalPro;
-            document.getElementById('carbTotal').innerText = totalCarbs;
-            
-            // Pass all three macros to the new feedback system
-            generateFeedback(totalCals, totalPro, totalCarbs);
-        }
-        loadData();
-    </script>
-</body>
-</html>
+                box.style.b

@@ -351,4 +351,38 @@
             }
             else {
                 feedback.innerText = "🔥 You are on track! Keep eating clean and steady.";
-                box.style.b
+                box.style.backgroundColor = "#eccc68";
+            }
+        }
+
+        function updateUI(records) {
+            let list = document.getElementById('logList'); list.innerHTML = '';
+            let totalCals = 0, totalPro = 0, totalCarbs = 0;
+            records.forEach(item => {
+                totalCals += item.cals; totalPro += item.pro; totalCarbs += item.carbs;
+                let timeParts = item.time.split(':');
+                let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
+                let hours = timeParts[0] % 12 || 12;
+                let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
+                list.innerHTML += `
+                    <li class="log-item">
+                        <div class="log-details">
+                            <strong>${item.name}</strong> <span>at ${displayTime}</span><br>
+                            <span>🔥 ${item.cals} kcal</span>
+                            <span>🥩 ${item.pro}g Protein</span>
+                            <span>🍞 ${item.carbs}g Carbs</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry(${item.id})">Delete</button>
+                    </li>
+                `;
+            });
+            document.getElementById('calTotal').innerText = totalCals;
+            document.getElementById('proTotal').innerText = totalPro;
+            document.getElementById('carbTotal').innerText = totalCarbs;
+            
+            generateFeedback(totalCals, totalPro, totalCarbs);
+        }
+        loadData();
+    </script>
+</body>
+</html>

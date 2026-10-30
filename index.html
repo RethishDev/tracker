@@ -3,580 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultimate Bulking Tracker</title>
+    <title>My Hub</title>
     <style>
         :root {
-            --bg-color: #f4f7f6;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
             --card-bg: #ffffff;
-            --primary: #ff4757;
-            --primary-dark: #ff2a3f;
-            --text: #2f3542;
-            --border: #ced6e0;
-            --success: #2ed573;
-            --accent: #ffa502;
-            --info: #1e90ff;
-            --nav-bg: #2f3542;
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            padding-top: 60px; /* Space for fixed topnav */
-        }
-        
-        /* Top Navigation Bar */
-        .topnav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--card-bg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* Spreads out the 3 sections */
-            padding: 15px 20px;
-            z-index: 50;
-        }
-        .menu-container {
-            flex: 1; /* Takes up equal space on the left */
-            display: flex;
-            justify-content: flex-start;
-        }
-        .spacer {
-            flex: 1; /* Takes up equal space on the right to force exact center */
-        }
-        .topnav h2 {
-            margin: 0;
-            color: var(--primary);
-            font-size: 20px;
-            white-space: nowrap; /* Prevents text from breaking */
-            text-align: center;
-        }
-        .menu-btn {
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--primary);
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 0;
+            --primary: #4A90E2;
+            --danger: #e74c3c;
+            --locked: #f39c12;
         }
 
-        /* Side Navigation Menu */
-        .sidenav {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 100;
-            top: 0;
-            left: 0;
-            background-color: var(--nav-bg);
-            overflow-x: hidden;
-            transition: 0.3s;
-            padding-top: 60px;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.5);
-        }
-        .sidenav a {
-            padding: 15px 25px;
-            text-decoration: none;
-            font-size: 18px;
-            color: #f1f1f1;
-            display: block;
-            transition: 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .sidenav a:hover { color: var(--primary); background-color: rgba(255,255,255,0.05); }
-        .sidenav .closebtn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 36px;
-            margin-left: 50px;
-            border-bottom: none;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
 
-        /* Main Container */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 15px;
-        }
-        
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; overscroll-behavior-y: none; }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; margin-top: 10px; }
+        header h1 { font-size: 24px; color: var(--primary); }
+        .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; }
+
+        /* Dashboard Grid */
+        .dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+
         .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            background-color: var(--card-bg); border-radius: 16px; padding: 25px 15px; text-align: center;
+            color: var(--text-color); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative;
         }
-        
-        .dashboard { display: flex; justify-content: space-between; gap: 15px; text-align: center; }
-        .stat-box { background: var(--bg-color); padding: 15px 10px; border-radius: 8px; flex: 1; border: 1px solid var(--border); font-size: 14px; }
-        .stat-box span { display: block; font-size: 22px; font-weight: bold; color: var(--primary); margin-top: 5px; }
+        .card:active { transform: scale(0.96); }
+        .icon { font-size: 32px; margin-bottom: 10px; }
+        .card h2 { font-size: 14px; font-weight: 600; }
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 14px; }
 
-        .form-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select, button { padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; width: 100%; }
-        select { background-color: #f1f2f6; cursor: pointer; font-weight: bold; }
-        
-        .picker-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .food-select-container { flex: 3; }
-        .qty-box-container { flex: 1; }
-        
-        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: var(--primary-dark); }
-        
-        .action-buttons { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .log-list { list-style: none; padding: 0; margin: 0; }
-        .log-item { background: var(--bg-color); margin-bottom: 10px; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
-        .log-details strong { display: block; margin-bottom: 5px; font-size: 16px; }
-        .log-details span { font-size: 13px; color: #57606f; margin-right: 12px; display: inline-block; }
-        .delete-btn { background: transparent; color: var(--primary); width: auto; padding: 8px 12px; border: 1px solid var(--primary); margin-left: 10px; }
-        
-        .feedback-box { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; transition: 0.3s; }
-
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 150; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 20px; }
-        .modal-content { background-color: var(--card-bg); margin: 5% auto; padding: 25px; border-radius: 12px; width: 92%; max-width: 600px; line-height: 1.6; position: relative; }
-        .close-modal { position: absolute; right: 20px; top: 15px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close-modal:hover { color: black; }
-        
-        /* Budget Calculator Styles */
-        .budget-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; background: var(--bg-color); padding: 10px; border-radius: 8px; }
-        .budget-row input { padding: 8px; font-size: 14px; }
-        .b-name { flex: 2; }
-        .b-num { flex: 1; }
-        .b-del { flex: 0.5; background: #ff4757; padding: 8px; }
-        .budget-total-box { background: var(--success); color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; font-size: 18px; font-weight: bold; }
-        .budget-labels { display: flex; gap: 10px; font-size: 12px; color: #57606f; font-weight: bold; padding: 0 10px; margin-bottom: 5px; }
-
-        @media (max-width: 600px) {
-            .dashboard { flex-wrap: wrap; gap: 10px; }
-            .stat-box { min-width: 45%; flex: 1 1 45%; }
-            .form-group, .picker-row { flex-direction: column; gap: 10px; }
-            .food-select-container, .qty-box-container { width: 100%; }
-            .log-item { flex-direction: column; align-items: flex-start; }
-            .delete-btn { margin-left: 0; margin-top: 15px; width: 100%; }
-            .budget-row { flex-wrap: wrap; }
-            .b-name { min-width: 100%; margin-bottom: 5px; }
-            .budget-labels { display: none; }
+        /* Modals (Settings & PIN) */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
         }
+        .modal-content {
+            background: white; width: 90%; max-width: 400px; border-radius: 16px; padding: 20px;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal h2 { margin-bottom: 15px; font-size: 20px; }
+        .close-btn { float: right; font-size: 20px; cursor: pointer; border: none; background: none; }
+
+        /* Forms & Buttons */
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        button.primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 10px; }
+        button.danger { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; }
+        
+        /* Fixed Checkbox Layout */
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; justify-content: flex-start; }
+        .checkbox-group input { width: auto; margin: 0; transform: scale(1.2); }
+
+        /* Settings List */
+        .settings-list { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+        .settings-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+        .settings-item span { font-size: 14px; }
+
+        /* New CSS for Edit Mode in Settings */
+.edit-mode input {
+    padding: 5px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.edit-mode input[type="text"] {
+    width: calc(100% - 10px);
+}
+.edit-controls {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+.edit-controls button {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+.settings-item-content {
+    flex-grow: 1;
+    margin-right: 10px;
+}
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
-    <div class="topnav">
-        <div class="menu-container">
-            <button class="menu-btn" onclick="openNav()">&#9776;</button>
-        </div>
-        <h2>Bulking Tracker</h2>
-	<div class="spacer"></div>
-    </div>
+    <header>
+        <h1>My Hub</h1>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </header>
 
-    <!-- Side Navigation Drawer -->
-    <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <a href="#" onclick="openModal('dietModal'); closeNav();">📖 Master Diet Plan</a>
-        <a href="#" onclick="openModal('budgetModal'); closeNav();">💰 Monthly Budget Calc</a>
-        <a href="#" onclick="closeNav();" style="color: #57606f;">+ More Tabs Soon...</a>
-    </div>
+    <main class="dashboard" id="app-grid"></main>
 
-    <!-- Modals Container -->
-    
-    <!-- 1. Diet Plan Modal -->
-    <div id="dietModal" class="modal">
+    <!-- PIN Entry Modal -->
+    <div id="pin-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('dietModal')">&times;</span>
-            <h2 style="text-align:left; color:var(--text); margin-top:0;">🚀 47kg to 55kg Plan</h2>
-            <div style="border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
-                <h4 style="color: var(--primary); margin:0 0 5px 0;">The 10-to-7 Workday Schedule</h4>
-                <ul style="margin:0; padding-left:20px;">
-                    <li><strong>8:30 AM:</strong> Kettle Oats (50g) + Hot Water + PB + 1 Banana.</li>
-                    <li><strong>11:30 AM:</strong> 2 Boiled Eggs + 1 Banana.</li>
-                    <li><strong>1:30 PM:</strong> Heavy Mess Lunch.</li>
-                    <li><strong>6:30 PM:</strong> Sand-Roasted Peanuts (Commute Snack).</li>
-                    <li><strong>8:30 PM:</strong> Hostel Dinner + Milky Mist Plain Curd.</li>
-                    <li><strong>9:45 PM:</strong> 40g Soya Chunks (Soaked in Kettle).</li>
-                </ul>
-            </div>
-            <div style="border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
-                <h4 style="color: var(--primary); margin:0 0 5px 0;">⚡ Quick Surplus Boosters</h4>
-                <ul style="margin:0; padding-left:20px; font-size: 14px; line-height: 1.5;">
-                    <li><strong>Banana PB Oat Shake (Breakfast/Weekends):</strong> Blend 2 bananas, 2 spoons peanut butter, 30g oats, and milk. <em>(~600 cals, 15g protein)</em>. Easy, heavy liquid calories.</li>
-                    <li><strong>Dates & Almonds (Office Desk):</strong> Keep a small box at work. Eat 3-4 dates + 10 almonds for a mid-day energy spike. <em>(~150 cals, instant carbs & healthy fats)</em>.</li>
-                    <li><strong>Avocado / Sharjah Shake (Evening Outings):</strong> When in Ernakulam, order these instead of fresh juice. <em>(~350-400 cals, 8-10g protein)</em>.</li>
-                    <li><strong>Roasted Chana (Study/Movie Snack):</strong> A great alternative to peanuts if you want high protein but lower fat.</li>
-                    <li><strong>Extra Boiled Eggs (Anytime):</strong> The ultimate protein cheat code. Boil 1 or 2 extra in the kettle if you are short on your 90g daily goal.</li>
-                </ul>
-            </div>
-            <div style="border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
-                <h4 style="color: var(--primary); margin:0 0 5px 0;">🌯 Outside / Treat Meals (Bulking Edition)</h4>
-                <ul style="margin:0; padding-left:20px; font-size: 14px; line-height: 1.5;">
-                    <li><strong>Shawarma Roll:</strong> Excellent fast food choice. Loaded with chicken and carbs. Ask for less mayo if your stomach is sensitive. <em>(~400 cals, 15-20g pro)</em>. Best for evening outings.</li>
-                    <li><strong>Alfaham / Tandoori Chicken (Quarter):</strong> Pure protein goldmine. Pair it with 1-2 kuboos for clean carbs instead of oily parottas. <em>(~350 cals, 30g pro)</em>.</li>
-                    <li><strong>Beef Roast & Porotta:</strong> Massive calorie bomb. Great for hitting your surplus, but limit to 1-2 times a week so the heavy oils don't stall your digestion overnight. <em>(~600+ cals, 25g pro)</em>.</li>
-                </ul>
-            </div>
-            <div>
-                <h4 style="color: var(--primary); margin:0 0 5px 0;">Target</h4>
-                <p style="margin:0;">Hit <strong>2400 Calories</strong> & <strong>90g Protein</strong> daily to gain ~2.3kg/month.</p>
-            </div>
+            <button class="close-btn" onclick="closeModal('pin-modal')">×</button>
+            <h2>Enter PIN</h2>
+            <input type="password" inputmode="numeric" id="pin-input" placeholder="****">
+            <button class="primary" onclick="verifyPin()">Unlock</button>
+            <p id="pin-error" style="color: red; display: none; font-size: 12px;">Incorrect PIN</p>
         </div>
     </div>
 
-    <!-- 2. Budget Calculator Modal -->
-    <div id="budgetModal" class="modal">
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('budgetModal')">&times;</span>
-            <h2 style="text-align:left; color:var(--text); margin-top:0;">💰 Grocery Budget</h2>
-            <p style="font-size: 13px; color: #57606f; margin-top: -10px;">Enter packet price and how many days it lasts. Monthly cost auto-calculates.</p>
+            <button class="close-btn" onclick="closeModal('settings-modal')">×</button>
+            <h2>Settings</h2>
             
-            <div class="budget-labels">
-                <div class="b-name">Item Name</div>
-                <div class="b-num">Price (₹)</div>
-                <div class="b-num">Lasts (Days)</div>
-                <div class="b-del" style="background:transparent;"></div>
-            </div>
+            <button class="primary" onclick="setNewPin()" style="background: #27ae60;">Set/Change Master PIN</button>
             
-            <div id="budgetContainer">
-                <!-- Budget rows generated by JS -->
-            </div>
+            <h3 style="margin: 15px 0 10px; font-size: 16px;">Add New Option</h3>
+            <input type="text" id="new-name" placeholder="Name (e.g. Bulking Tracker)">
+            <input type="text" id="new-url" placeholder="URL (e.g. bulking.html)">
+            <input type="text" id="new-icon" placeholder="Emoji Icon (e.g. 💪)">
             
-            <button onclick="addBudgetItem()" style="background-color: var(--info); margin-top: 10px;">+ Add Custom Item</button>
+            <!-- Checkbox fix applied here -->
+            <label class="checkbox-group">
+                <input type="checkbox" id="new-locked"> Require PIN Lock
+            </label>
             
-            <div class="budget-total-box">
-                Estimated Monthly Cost: ₹<span id="monthlyBudgetTotal">0</span>
-            </div>
-        </div>
-    </div>
+            <button class="primary" onclick="addApp()">Add Option</button>
 
-    <!-- Main Content App -->
-    <div class="container">
-        <!-- AI Feedback System -->
-        <div class="card" id="suggestionBox" style="display: none; padding: 0; margin-bottom: 20px;">
-            <div class="feedback-box" id="feedbackText"></div>
-        </div>
-
-        <!-- Live Progress Dashboard -->
-        <div class="card dashboard">
-            <div class="stat-box">Calories<br><span id="calTotal">0</span> / 2400</div>
-            <div class="stat-box">Protein<br><span id="proTotal">0</span>g / 90g</div>
-            <div class="stat-box">Carbs<br><span id="carbTotal">0</span>g / 340g</div>
-        </div>
-
-        <!-- Data Logging Section -->
-        <div class="card">
-            <h3>Smart Food Logger</h3>
-            <div class="picker-row">
-                <div class="food-select-container">
-                    <select id="foodSelect" onchange="calculateMacros()">
-                        <option value="">-- Choose Food --</option>
-                        <optgroup label="Room / Kettle Foods">
-                        <option value='{"name":"Boiled Egg","cals":70,"pro":6,"carbs":0.5}'>Boiled Egg (1 egg)</option>
-                        <option value='{"name":"Banana (Poovan/Robusta)","cals":100,"pro":1,"carbs":25}'>Banana (1 piece)</option>
-                        <option value='{"name":"Soya Chunks (10g)","cals":35,"pro":5.2,"carbs":3.3}'>Soya Chunks (per 10g)</option>
-                        <option value='{"name":"Oats (10g)","cals":38,"pro":1.3,"carbs":6.5}'>Oats (per 10g)</option>
-                        <option value='{"name":"Pintola Peanut Butter (1 Tbsp)","cals":95,"pro":4.5,"carbs":3}'>Peanut Butter (1 Tbsp)</option>
-                        <option value='{"name":"Milky Mist Curd","cals":52,"pro":3,"carbs":4.4}'>Milky Mist Curd (85g cup)</option>
-                        <option value='{"name":"Roasted Peanuts (10g)","cals":56,"pro":2.5,"carbs":1.6}'>Roasted Peanuts (per 10g)</option>
-                    </optgroup>
-
-                    <optgroup label="Hostel Mess (Breads & Rice)">
-                        <option value='{"name":"Chapathi","cals":100,"pro":3,"carbs":18}'>Chapathi (1 piece)</option>
-                        <option value='{"name":"Porotta","cals":300,"pro":6,"carbs":40}'>Porotta (1 piece)</option>
-                        <option value='{"name":"Appam","cals":120,"pro":2,"carbs":25}'>Appam (1 piece)</option>
-                        <option value='{"name":"White Rice","cals":200,"pro":4,"carbs":45}'>White Rice (1 standard cup)</option>
-                        <option value='{"name":"Upma","cals":250,"pro":6,"carbs":40}'>Upma (1 standard cup)</option>
-                    </optgroup>
-
-                    <optgroup label="Hostel Mess (Curries & Meals)">
-                        <option value='{"name":"Kadala Curry","cals":150,"pro":8,"carbs":20}'>Kadala Curry (1 cup)</option>
-                        <option value='{"name":"Green Peas Curry","cals":130,"pro":7,"carbs":18}'>Green Peas Curry (1 cup)</option>
-                        <option value='{"name":"Dal Curry","cals":120,"pro":6,"carbs":18}'>Dal Curry (1 cup)</option>
-                        <option value='{"name":"Chicken Curry","cals":250,"pro":20,"carbs":10}'>Chicken Curry (2 pieces + gravy)</option>
-                        <option value='{"name":"Beef Curry","cals":300,"pro":22,"carbs":10}'>Beef Curry (1 cup)</option>
-                        <option value='{"name":"Moru Curry","cals":80,"pro":3,"carbs":7}'>Moru Curry (1 cup)</option>
-                        <option value='{"name":"Chicken Biriyani","cals":500,"pro":20,"carbs":60}'>Chicken Biriyani (1 standard portion)</option>
-                        <option value='{"name":"Rice with Fried Fish","cals":400,"pro":20,"carbs":45}'>Rice + 1 Fried Fish slice</option>
-                    </optgroup>
-
-                    <optgroup label="Kerala Home Foods">
-                        <option value='{"name":"Puttu (1 Kutti)","cals":200,"pro":3,"carbs":40}'>Puttu (1 piece/kutti)</option>
-                        <option value='{"name":"Idiyappam","cals":60,"pro":1,"carbs":12}'>Idiyappam (1 piece)</option>
-                        <option value='{"name":"Dosa","cals":120,"pro":3,"carbs":20}'>Dosa (1 piece)</option>
-                        <option value='{"name":"Idli","cals":60,"pro":2,"carbs":12}'>Idli (1 piece)</option>
-                        <option value='{"name":"Kappa (Tapioca)","cals":250,"pro":2,"carbs":60}'>Kappa / Tapioca (1 cup)</option>
-                        <option value='{"name":"Fish Curry (Mathi/Ayala)","cals":150,"pro":15,"carbs":5}'>Fish Curry (1 cup + fish)</option>
-                    </optgroup>
-
-                    <optgroup label="Ernakulam Outings (Budget Treats)">
-                        <option value='{"name":"Sharjah Shake","cals":350,"pro":10,"carbs":50}'>Sharjah Shake (1 Glass)</option>
-                        <option value='{"name":"Avocado / Butter Fruit Shake","cals":400,"pro":8,"carbs":45}'>Avocado Shake (1 Glass)</option>
-                        <option value='{"name":"Fresh Fruit Juice (with sugar)","cals":150,"pro":1,"carbs":35}'>Fresh Juice (1 Glass)</option>
-                        <option value='{"name":"Shawarma Roll","cals":400,"pro":15,"carbs":40}'>Shawarma Roll (1 piece)</option>
-                        <option value='{"name":"Alfaham Chicken (Quarter)","cals":350,"pro":30,"carbs":5}'>Alfaham Chicken (Quarter / 1 Leg piece)</option>
-                    </optgroup>
-                    </select>
-                </div>
-                <div class="qty-box-container">
-                    <input type="number" id="foodQuantity" placeholder="Qty" value="1" min="0.5" step="0.5" oninput="calculateMacros()">
-                </div>
-            </div>
-            <div class="form-group">
-                <input type="text" id="foodName" placeholder="Food Name (Auto-fills)" required>
-            </div>
-            <div class="form-group">
-                <input type="number" id="foodCals" placeholder="Calories" required>
-                <input type="number" id="foodPro" placeholder="Protein (g)" required>
-                <input type="number" id="foodCarbs" placeholder="Carbs (g)" required>
-            </div>
-            <div class="form-group">
-                <input type="time" id="foodTime" required>
-            </div>
-            <button onclick="addEntry()">Record Meal</button>
-        </div>
-
-        <!-- History Section -->
-        <div class="card">
-            <h3>Today's Log</h3>
-            <div class="action-buttons">
-                <button onclick="downloadLog()" style="background-color: #2ed573; flex: 1;">📥 Download Log</button>
-                <button onclick="clearDay()" style="background-color: #747d8c; flex: 1;">🗑️ Clear Day</button>
-            </div>
-            <ul class="log-list" id="logList"></ul>
+            <div class="settings-list" id="settings-app-list"></div>
         </div>
     </div>
 
     <script>
-        // Set Default Time
-        document.getElementById('foodTime').value = new Date().toLocaleTimeString('en-GB', { hour: "numeric", minute: "numeric" });
-        const TARGET_CALS = 2400; const TARGET_PRO = 90;
+    const defaultApps = [
+        { id: 2, name: "Calculator", url: "calculator.html", icon: "🧮", locked: true }
+    ];
 
-        // Side Navigation Logic
-        function openNav() { document.getElementById("mySidenav").style.width = "250px"; }
-        function closeNav() { document.getElementById("mySidenav").style.width = "0"; }
+    let apps = JSON.parse(localStorage.getItem('hub_apps')) || defaultApps;
+    let masterPin = localStorage.getItem('hub_pin') || null;
+    
+    let pendingAction = null; 
+    let pendingUrl = ""; 
+    let editingId = null; // Track which app is currently being edited
 
-        // Modal Logic
-        function openModal(id) { document.getElementById(id).style.display = "block"; }
-        function closeModal(id) { document.getElementById(id).style.display = "none"; }
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
-        }
+    function renderApps() {
+        const grid = document.getElementById('app-grid');
+        const settingsList = document.getElementById('settings-app-list');
+        grid.innerHTML = "";
+        settingsList.innerHTML = "<h3>Manage Options</h3>";
 
-        // --- Budget Calculator Logic ---
-        let budgetItems = JSON.parse(localStorage.getItem('budgetItems')) || [
-            { id: 1, name: "Pintola Peanut Butter (1kg)", price: 400, days: 30 },
-            { id: 2, name: "Oats (1kg)", price: 150, days: 20 },
-            { id: 3, name: "Soya Chunks (200g)", price: 45, days: 5 },
-            { id: 4, name: "Milky Mist Curd (Daily)", price: 12, days: 1 },
-            { id: 5, name: "Sand-Roasted Peanuts (130g)", price: 40, days: 4 },
-            { id: 6, name: "Bananas (1 Dozen)", price: 60, days: 6 },
-            { id: 7, name: "Eggs (Tray of 30)", price: 180, days: 15 }
-        ];
+        apps.forEach(app => {
+            // Render Dashboard Card
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => handleAppClick(app);
+            card.innerHTML = `
+                ${app.locked ? '<div class="lock-icon">🔒</div>' : ''}
+                <div class="icon">${app.icon}</div>
+                <h2>${app.name}</h2>
+            `;
+            grid.appendChild(card);
 
-        function renderBudget() {
-            const container = document.getElementById('budgetContainer');
-            container.innerHTML = '';
-            let totalMonthly = 0;
-
-            budgetItems.forEach((item, index) => {
-                let monthlyCost = (item.price / item.days) * 30;
-                totalMonthly += monthlyCost;
-
-                container.innerHTML += `
-                    <div class="budget-row">
-                        <input type="text" class="b-name" value="${item.name}" onchange="updateBudgetItem(${index}, 'name', this.value)" placeholder="Item Name">
-                        <input type="number" class="b-num" value="${item.price}" onchange="updateBudgetItem(${index}, 'price', this.value)" placeholder="Price ₹">
-                        <input type="number" class="b-num" value="${item.days}" onchange="updateBudgetItem(${index}, 'days', this.value)" placeholder="Days">
-                        <button class="b-del" onclick="removeBudgetItem(${index})">X</button>
+            // Render Settings List Item
+            const listItem = document.createElement('div');
+            listItem.className = 'settings-item';
+            
+            if (editingId === app.id) {
+                // Render Edit Mode
+                listItem.classList.add('edit-mode');
+                listItem.innerHTML = `
+                    <div class="settings-item-content">
+                        <input type="text" id="edit-name-${app.id}" value="${app.name}" placeholder="Name">
+                        <input type="text" id="edit-url-${app.id}" value="${app.url}" placeholder="URL">
+                        <input type="text" id="edit-icon-${app.id}" value="${app.icon}" placeholder="Emoji">
+                        <label class="checkbox-group" style="margin-bottom:0; font-size:12px;">
+                            <input type="checkbox" id="edit-locked-${app.id}" ${app.locked ? 'checked' : ''}> Locked
+                        </label>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <button class="primary" style="margin:0; padding:5px 10px; font-size:12px; background:#27ae60;" onclick="saveEdit(${app.id})">Save</button>
+                        <button class="danger" onclick="cancelEdit()">Cancel</button>
                     </div>
                 `;
-            });
-            document.getElementById('monthlyBudgetTotal').innerText = Math.round(totalMonthly);
-            localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
-        }
-
-        function updateBudgetItem(index, field, value) {
-            budgetItems[index][field] = field === 'name' ? value : parseFloat(value) || 1;
-            renderBudget();
-        }
-
-        function addBudgetItem() {
-            budgetItems.push({ id: Date.now(), name: "", price: 0, days: 1 });
-            renderBudget();
-        }
-
-        function removeBudgetItem(index) {
-            budgetItems.splice(index, 1);
-            renderBudget();
-        }
-        
-        // Initialize Budget Calculator
-        renderBudget();
-
-
-        // --- Tracker Logic ---
-        function calculateMacros() {
-            let select = document.getElementById('foodSelect');
-            let qty = parseFloat(document.getElementById('foodQuantity').value) || 1;
-
-            if (select.value) {
-                let data = JSON.parse(select.value);
-                let finalName = data.name;
-                if(qty !== 1) { finalName = data.name + " (x" + qty + ")"; }
-                
-                document.getElementById('foodName').value = finalName;
-                document.getElementById('foodCals').value = Math.round(data.cals * qty);
-                document.getElementById('foodPro').value = Math.round(data.pro * qty);
-                document.getElementById('foodCarbs').value = Math.round(data.carbs * qty);
-            }
-        }
-
-        function loadData() {
-            let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
-            updateUI(records);
-        }
-
-        function addEntry() {
-            let name = document.getElementById('foodName').value;
-            let cals = parseInt(document.getElementById('foodCals').value);
-            let pro = parseInt(document.getElementById('foodPro').value);
-            let carbs = parseInt(document.getElementById('foodCarbs').value);
-            let time = document.getElementById('foodTime').value;
-
-            if(!name || isNaN(cals) || isNaN(pro) || isNaN(carbs)) {
-                alert("Please fill all nutritional fields with numbers!"); return;
-            }
-
-            let entry = { id: Date.now(), name, cals, pro, carbs, time };
-            let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
-            records.push(entry);
-            localStorage.setItem('bulkingData', JSON.stringify(records));
-            
-            document.getElementById('foodName').value = '';
-            document.getElementById('foodCals').value = '';
-            document.getElementById('foodPro').value = '';
-            document.getElementById('foodCarbs').value = '';
-            document.getElementById('foodSelect').value = ''; 
-            document.getElementById('foodQuantity').value = '1'; 
-            
-            loadData();
-        }
-
-        function deleteEntry(id) {
-            let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
-            records = records.filter(item => item.id !== id);
-            localStorage.setItem('bulkingData', JSON.stringify(records));
-            loadData();
-        }
-
-        function clearDay() {
-            if(confirm("Are you sure you want to clear today's log to start fresh?")) {
-                localStorage.removeItem('bulkingData'); loadData();
-            }
-        }
-
-        function downloadLog() {
-            let records = JSON.parse(localStorage.getItem('bulkingData')) || [];
-            if (records.length === 0) { alert("You haven't logged any meals yet today!"); return; }
-            let csvContent = "Time,Food Item,Calories,Protein(g),Carbs(g)\n";
-            records.forEach(item => {
-                let timeParts = item.time.split(':');
-                let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
-                let hours = timeParts[0] % 12 || 12;
-                let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
-                csvContent += `"${displayTime}","${item.name}",${item.cals},${item.pro},${item.carbs}\n`;
-            });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            let today = new Date().toISOString().split('T')[0];
-            link.setAttribute("href", url);
-            link.setAttribute("download", `bulking_log_${today}.csv`);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-
-        function generateFeedback(totalCals, totalPro, totalCarbs) {
-            let feedback = document.getElementById('feedbackText');
-            let box = document.getElementById('suggestionBox');
-            let hour = new Date().getHours();
-            
-            box.style.display = 'block';
-
-            if (totalCals >= TARGET_CALS && totalPro >= TARGET_PRO) {
-                feedback.innerText = "🏆 Target Hit! 2400 Cals & 90g Protein smashed. Rest up and let the muscles grow!";
-                box.style.backgroundColor = "var(--success)";
-                box.style.color = "white";
-                return;
-            }
-            if (totalCals > 1500 && totalPro < (totalCals / 100) * 2) { 
-                feedback.innerText = "⚠️ You are eating plenty of calories, but your protein is way too low! Soak some soya chunks or boil eggs ASAP.";
-                box.style.backgroundColor = "var(--primary)";
-                box.style.color = "white";
-                return;
-            }
-
-            box.style.backgroundColor = "var(--accent)"; 
-            box.style.color = "var(--text)";
-
-            if (totalCals === 0) {
-                feedback.innerText = "🌅 Time to start eating! Fuel up your body for the day.";
-                box.style.backgroundColor = "var(--info)";
-                box.style.color = "white";
-            } 
-            else if (hour < 11 && totalCals < 300) {
-                feedback.innerText = "🕗 It's morning! Don't skip breakfast. Make your oats or grab some eggs before work.";
-            }
-            else if (hour >= 13 && hour <= 16 && totalPro < 40) {
-                feedback.innerText = "🕑 Mid-day check: Your protein is running behind. Make sure lunch has chicken, fish, or eggs!";
-            }
-            else if (hour >= 17 && hour <= 19 && totalCals < 1500) {
-                feedback.innerText = "🕔 Evening already! You are behind on calories. Eat your peanuts on the commute!";
-            }
-            else if (hour >= 21 && totalPro < TARGET_PRO) {
-                feedback.innerText = `🌙 Almost bedtime! You still need ${TARGET_PRO - totalPro}g of protein. Time for Soya Chunks or Milk.`;
-            }
-            else {
-                feedback.innerText = "🔥 You are on track! Keep eating clean and steady.";
-                box.style.backgroundColor = "#eccc68";
-            }
-        }
-
-        function updateUI(records) {
-            let list = document.getElementById('logList'); list.innerHTML = '';
-            let totalCals = 0, totalPro = 0, totalCarbs = 0;
-            records.forEach(item => {
-                totalCals += item.cals; totalPro += item.pro; totalCarbs += item.carbs;
-                let timeParts = item.time.split(':');
-                let ampm = timeParts[0] >= 12 ? 'PM' : 'AM';
-                let hours = timeParts[0] % 12 || 12;
-                let displayTime = hours + ':' + timeParts[1] + ' ' + ampm;
-                list.innerHTML += `
-                    <li class="log-item">
-                        <div class="log-details">
-                            <strong>${item.name}</strong> <span>at ${displayTime}</span><br>
-                            <span>🔥 ${item.cals} kcal</span>
-                            <span>🥩 ${item.pro}g Protein</span>
-                            <span>🍞 ${item.carbs}g Carbs</span>
-                        </div>
-                        <button class="delete-btn" onclick="deleteEntry(${item.id})">Delete</button>
-                    </li>
+            } else {
+                // Render Normal Mode
+                listItem.innerHTML = `
+                    <div class="settings-item-content">
+                        <span>${app.icon} ${app.name} ${app.locked ? '🔒' : '🔓'}</span>
+                    </div>
+                    <div>
+                        <button style="padding:5px 10px;" onclick="startEdit(${app.id})">Edit</button>
+                        <button class="danger" style="margin-left:5px;" onclick="deleteApp(${app.id})">Del</button>
+                    </div>
                 `;
-            });
-            document.getElementById('calTotal').innerText = totalCals;
-            document.getElementById('proTotal').innerText = totalPro;
-            document.getElementById('carbTotal').innerText = totalCarbs;
-            
-            generateFeedback(totalCals, totalPro, totalCarbs);
+            }
+            settingsList.appendChild(listItem);
+        });
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('hub_apps', JSON.stringify(apps));
+        renderApps();
+    }
+
+    function handleAppClick(app) {
+        if (app.locked) {
+            if (!masterPin) {
+                alert("App is locked, but no PIN is set! Go to settings to set a PIN.");
+                return;
+            }
+            pendingAction = 'app';
+            pendingUrl = app.url;
+            showPinModal();
+        } else {
+            window.location.href = app.url;
         }
-        loadData();
-    </script>
+    }
+
+    function openSettings() {
+        if (masterPin) {
+            pendingAction = 'settings';
+            showPinModal();
+        } else {
+            document.getElementById('settings-modal').style.display = 'flex';
+        }
+    }
+
+    function showPinModal() {
+        document.getElementById('pin-modal').style.display = 'flex';
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-input').focus();
+    }
+
+    function verifyPin() {
+        const entered = document.getElementById('pin-input').value;
+        if (entered === masterPin) {
+            document.getElementById('pin-error').style.display = 'none';
+            const actionToTake = pendingAction;
+            closeModal('pin-modal');
+            
+            if (actionToTake === 'app') {
+                window.location.href = pendingUrl;
+            } else if (actionToTake === 'settings') {
+                document.getElementById('settings-modal').style.display = 'flex';
+            }
+        } else {
+            document.getElementById('pin-error').style.display = 'block';
+        }
+    }
+
+    function setNewPin() {
+        const newPin = prompt("Enter your new master PIN (leave blank to remove lock):");
+        if (newPin !== null) {
+            masterPin = newPin || null;
+            if (masterPin) {
+                localStorage.setItem('hub_pin', masterPin);
+            } else {
+                localStorage.removeItem('hub_pin');
+            }
+            alert("Master PIN updated.");
+        }
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+        if (id === 'pin-modal') {
+             document.getElementById('pin-error').style.display = 'none';
+        }
+        pendingAction = null;
+        editingId = null; // Close any open edit fields when closing settings
+        if(id === 'settings-modal') renderApps();
+    }
+
+    function addApp() {
+        const name = document.getElementById('new-name').value;
+        const url = document.getElementById('new-url').value;
+        const icon = document.getElementById('new-icon').value;
+        const locked = document.getElementById('new-locked').checked;
+
+        if (!name || !url) return alert("Name and URL are required!");
+
+        apps.push({ id: Date.now(), name, url, icon, locked });
+        
+        document.getElementById('new-name').value = '';
+        document.getElementById('new-url').value = '';
+        document.getElementById('new-icon').value = '';
+        document.getElementById('new-locked').checked = false;
+
+        saveAndRender();
+    }
+
+    function deleteApp(id) {
+        if(confirm("Are you sure you want to delete this option?")) {
+            apps = apps.filter(app => app.id !== id);
+            saveAndRender();
+        }
+    }
+
+    // --- New Edit Functions --- //
+    
+    function startEdit(id) {
+        editingId = id;
+        renderApps(); // Re-render to show the input fields for this specific app
+    }
+
+    function cancelEdit() {
+        editingId = null;
+        renderApps(); // Re-render to revert back to text view
+    }
+
+    function saveEdit(id) {
+        const app = apps.find(a => a.id === id);
+        if (app) {
+            const newName = document.getElementById(`edit-name-${id}`).value;
+            const newUrl = document.getElementById(`edit-url-${id}`).value;
+            
+            if (!newName || !newUrl) {
+                alert("Name and URL cannot be empty!");
+                return;
+            }
+
+            app.name = newName;
+            app.url = newUrl;
+            app.icon = document.getElementById(`edit-icon-${id}`).value || app.icon;
+            app.locked = document.getElementById(`edit-locked-${id}`).checked;
+            
+            editingId = null; // Close edit mode
+            saveAndRender();
+        }
+    }
+
+    renderApps();
+</script>
 </body>
 </html>

@@ -1,336 +1,1145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Hub</title>
-    <style>
-        :root {
-            --bg-color: #f4f4f9;
-            --text-color: #333;
-            --card-bg: #ffffff;
-            --primary: #4A90E2;
-            --danger: #e74c3c;
-            --locked: #f39c12;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Meal & Macro Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; overscroll-behavior-y: none; }
-
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; margin-top: 10px; }
-        header h1 { font-size: 24px; color: var(--primary); }
-        .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; }
-
-        /* Dashboard Grid */
-        .dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
-
-        .card {
-            background-color: var(--card-bg); border-radius: 16px; padding: 25px 15px; text-align: center;
-            color: var(--text-color); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative;
-        }
-        .card:active { transform: scale(0.96); }
-        .icon { font-size: 32px; margin-bottom: 10px; }
-        .card h2 { font-size: 14px; font-weight: 600; }
-        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 14px; }
-
-        /* Modals (Settings & PIN) */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background: white; width: 90%; max-width: 400px; border-radius: 16px; padding: 20px;
-            max-height: 90vh; overflow-y: auto;
-        }
-        .modal h2 { margin-bottom: 15px; font-size: 20px; }
-        .close-btn { float: right; font-size: 20px; cursor: pointer; border: none; background: none; }
-
-        /* Forms & Buttons */
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        button.primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 10px; }
-        button.danger { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; }
-        
-        /* Fixed Checkbox Layout */
-        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; justify-content: flex-start; }
-        .checkbox-group input { width: auto; margin: 0; transform: scale(1.2); }
-
-        /* Settings List */
-        .settings-list { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
-        .settings-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-        .settings-item span { font-size: 14px; }
-
-        /* New CSS for Edit Mode in Settings */
-.edit-mode input {
-    padding: 5px;
-    margin-bottom: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-.edit-mode input[type="text"] {
-    width: calc(100% - 10px);
-}
-.edit-controls {
-    display: flex;
-    gap: 5px;
-    margin-top: 5px;
-}
-.edit-controls button {
-    padding: 5px 10px;
-    font-size: 12px;
-}
-.settings-item-content {
-    flex-grow: 1;
-    margin-right: 10px;
-}
-    </style>
+      }
+    }
+  </script>
+  <style>
+    .meter-circle {
+      transition: stroke-dashoffset 0.5s ease-in-out;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-    <header>
-        <h1>My Hub</h1>
-        <button class="settings-btn" onclick="openSettings()">⚙️</button>
-    </header>
-
-    <main class="dashboard" id="app-grid"></main>
-
-    <!-- PIN Entry Modal -->
-    <div id="pin-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('pin-modal')">×</button>
-            <h2>Enter PIN</h2>
-            <input type="password" inputmode="numeric" id="pin-input" placeholder="****">
-            <button class="primary" onclick="verifyPin()">Unlock</button>
-            <p id="pin-error" style="color: red; display: none; font-size: 12px;">Incorrect PIN</p>
+  <!-- Top Navbar -->
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20">
+          M
         </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('settings-modal')">×</button>
-            <h2>Settings</h2>
-            
-            <button class="primary" onclick="setNewPin()" style="background: #27ae60;">Set/Change Master PIN</button>
-            
-            <h3 style="margin: 15px 0 10px; font-size: 16px;">Add New Option</h3>
-            <input type="text" id="new-name" placeholder="Name (e.g. Bulking Tracker)">
-            <input type="text" id="new-url" placeholder="URL (e.g. bulking.html)">
-            <input type="text" id="new-icon" placeholder="Emoji Icon (e.g. 💪)">
-            
-            <!-- Checkbox fix applied here -->
-            <label class="checkbox-group">
-                <input type="checkbox" id="new-locked"> Require PIN Lock
-            </label>
-            
-            <button class="primary" onclick="addApp()">Add Option</button>
-
-            <div class="settings-list" id="settings-app-list"></div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight leading-none">MacroTrack</h1>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Daily Meal & Macro Calculator</span>
         </div>
-    </div>
+      </div>
 
-    <script>
-    const defaultApps = [
-        { id: 2, name: "Calculator", url: "calculator.html", icon: "🧮", locked: true }
+      <!-- Date Navigator & Controls -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1 text-sm font-medium">
+          <button id="prev-date-btn" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md transition" title="Previous Day">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <input type="date" id="current-date-input" class="bg-transparent border-0 text-xs sm:text-sm font-semibold px-2 py-1 text-center focus:ring-0 cursor-pointer">
+          <button id="next-date-btn" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md transition" title="Next Day">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <svg id="moon-icon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="sun-icon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: Dashboard & Targets (5 cols) -->
+      <section class="lg:col-span-5 space-y-6">
+
+        <!-- Macro Dashboard Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-bold text-base tracking-tight">Today's Nutrition</h2>
+            <button id="open-target-modal-btn" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Adjust Goals
+            </button>
+          </div>
+
+          <!-- Calories Progress Dial & Summary -->
+          <div class="flex items-center justify-around py-2 border-b border-slate-100 dark:border-slate-800">
+            <div class="relative w-32 h-32 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" class="text-slate-100 dark:text-slate-800" stroke-width="10" stroke="currentColor" fill="transparent"/>
+                <circle id="calorie-progress-meter" cx="60" cy="60" r="50" class="text-blue-600 transition-all duration-500 ease-out" stroke-width="10" stroke-dasharray="314.159" stroke-dashoffset="314.159" stroke-linecap="round" stroke="currentColor" fill="transparent"/>
+              </svg>
+              <div class="absolute flex flex-col items-center justify-center text-center">
+                <span id="calories-left-val" class="text-xl font-extrabold tracking-tight leading-none">0</span>
+                <span id="calories-left-label" class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Remaining</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <span class="text-slate-500 dark:text-slate-400 text-xs">Consumed:</span>
+                <span id="consumed-calories" class="font-bold">0</span>
+                <span class="text-xs text-slate-400">kcal</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                <span class="text-slate-500 dark:text-slate-400 text-xs">Target:</span>
+                <span id="target-calories" class="font-bold">2000</span>
+                <span class="text-xs text-slate-400">kcal</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="text-slate-500 dark:text-slate-400 text-xs">Net Balance:</span>
+                <span id="balance-calories" class="font-bold text-emerald-600 dark:text-emerald-400">+2000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Linear Macro Bars -->
+          <div class="space-y-3 pt-4">
+            <!-- Protein -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span> Protein
+                </span>
+                <span><span id="consumed-protein">0</span> / <span id="target-protein">150</span>g</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div id="bar-protein" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Carbs -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-amber-500 dark:text-amber-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> Carbs
+                </span>
+                <span><span id="consumed-carbs">0</span> / <span id="target-carbs">200</span>g</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div id="bar-carbs" class="h-full bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Fat -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-rose-500 dark:text-rose-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> Fats
+                </span>
+                <span><span id="consumed-fat">0</span> / <span id="target-fat">65</span>g</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div id="bar-fat" class="h-full bg-rose-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Macro Caloric Distribution Breakdown Bar -->
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+            <span class="font-medium text-[11px] uppercase tracking-wider block mb-1.5">Current Calorie Breakdown</span>
+            <div class="w-full h-2 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800">
+              <div id="ratio-protein" class="bg-blue-600 transition-all duration-300" style="width: 33%"></div>
+              <div id="ratio-carbs" class="bg-amber-500 transition-all duration-300" style="width: 34%"></div>
+              <div id="ratio-fat" class="bg-rose-500 transition-all duration-300" style="width: 33%"></div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1 font-semibold">
+              <span id="ratio-label-protein">P: 0%</span>
+              <span id="ratio-label-carbs">C: 0%</span>
+              <span id="ratio-label-fat">F: 0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water Tracker Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              </span>
+              <h3 class="font-bold text-sm">Water Intake</h3>
+            </div>
+            <span class="text-xs font-semibold text-sky-600 dark:text-sky-400"><span id="water-intake-val">0</span> / 3000 ml</span>
+          </div>
+
+          <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+            <div id="water-bar" class="bg-sky-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="adjustWater(250)" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:hover:bg-sky-900/70 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 transition">+250 ml</button>
+            <button onclick="adjustWater(500)" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:hover:bg-sky-900/70 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 transition">+500 ml</button>
+            <button onclick="adjustWater(-250)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 transition" title="Minus 250ml">-</button>
+          </div>
+        </div>
+
+        <!-- Quick Summary & Copy Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm">Share / Export Daily Log</h3>
+            <button id="copy-summary-btn" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              <span>Copy Summary</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Meals Logging (7 cols) -->
+      <section class="lg:col-span-7 space-y-6">
+
+        <!-- Add Food Action Bar -->
+        <div class="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <div>
+            <h2 class="font-bold text-base">Meal Tracker</h2>
+            <p class="text-xs text-slate-500">Record foods, snacks, or homemade recipes</p>
+          </div>
+          <button id="open-add-food-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm shadow-blue-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Food / Drink
+          </button>
+        </div>
+
+        <!-- Meal Sections Container -->
+        <div id="meals-container" class="space-y-4">
+          <!-- Meal category blocks generated dynamically via JS -->
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL 1: Add Food Modal -->
+  <div id="add-food-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+        <h3 class="font-bold text-base">Add Item to Log</h3>
+        <button onclick="closeFoodModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Tabs: Library vs Custom Entry -->
+      <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+        <button id="tab-library-btn" class="flex-1 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400">
+          Search Database
+        </button>
+        <button id="tab-custom-btn" class="flex-1 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent">
+          Custom / Manual Entry
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 overflow-y-auto flex-1 space-y-4">
+        
+        <!-- Target Meal Slot Select -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Target Meal Category</label>
+          <select id="modal-meal-type" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Snacks">Snacks / Smoothies</option>
+            <option value="Dinner">Dinner</option>
+          </select>
+        </div>
+
+        <!-- VIEW 1: Database Search View -->
+        <div id="view-library" class="space-y-3">
+          <div class="relative">
+            <input type="text" id="food-search-input" placeholder="Search foods (e.g. Oats, Egg, Chicken, Rice, Dosa...)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <!-- Quick category chips -->
+          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar" id="category-pills">
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold" data-cat="All">All</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Hostel / Kerala">Hostel / Kerala</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Smoothies & Shakes">Smoothies & Shakes</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Home Curries">Home Curries</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Proteins">Proteins</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Grains">Grains & Breads</button>
+            <button class="cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200" data-cat="Snacks">Indian Snacks</button>
+          </div>
+
+          <!-- Food Items List -->
+          <div id="food-search-results" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Selected Item Portion Multiplier Preview -->
+          <div id="selected-library-item-config" class="hidden p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span id="selected-item-title" class="font-bold text-slate-800 dark:text-slate-100">Item Name</span>
+              <span id="selected-item-macros" class="text-slate-500 dark:text-slate-400">0 kcal | P: 0g C: 0g F: 0g</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Portion Multiplier / Servings:</label>
+              <input type="number" id="selected-item-servings" step="0.25" min="0.25" value="1" class="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs text-center font-bold">
+              <button id="confirm-add-library-item" class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition">
+                Add to Daily Log
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: Custom / Manual Form -->
+        <div id="view-custom" class="hidden space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Food / Dish Name</label>
+            <input type="text" id="custom-name" placeholder="e.g. Homemade Chicken Biryani" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm">
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Calories (kcal)</label>
+              <input type="number" id="custom-calories" placeholder="Auto / 0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-blue-500 mb-1">Protein (g)</label>
+              <input type="number" id="custom-protein" value="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-500 mb-1">Carbs (g)</label>
+              <input type="number" id="custom-carbs" value="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-rose-500 mb-1">Fats (g)</label>
+              <input type="number" id="custom-fat" value="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Serving Label</label>
+            <input type="text" id="custom-serving" placeholder="e.g. 1 bowl, 250g, 1 glass" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm">
+          </div>
+          <button id="confirm-add-custom-item" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition mt-2">
+            Add Custom Food
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Adjust Targets & Calculator Modal -->
+  <div id="targets-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+        <h3 class="font-bold text-base">Nutrition & TDEE Target Setup</h3>
+        <button onclick="closeTargetModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-5 text-sm">
+        
+        <!-- Interactive TDEE Helper Accordion -->
+        <details class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs">
+          <summary class="font-bold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center justify-between">
+            <span>Calculate Mifflin-St Jeor TDEE</span>
+            <span class="text-blue-600 dark:text-blue-400">Open Calculator</span>
+          </summary>
+          <div class="space-y-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-500 mb-1">Gender</label>
+                <select id="calc-gender" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-500 mb-1">Age (yrs)</label>
+                <input type="number" id="calc-age" value="25" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5">
+              </div>
+              <div>
+                <label class="block text-slate-500 mb-1">Weight (kg)</label>
+                <input type="number" id="calc-weight" value="65" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5">
+              </div>
+              <div>
+                <label class="block text-slate-500 mb-1">Height (cm)</label>
+                <input type="number" id="calc-height" value="175" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-500 mb-1">Daily Activity Level</label>
+              <select id="calc-activity" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5">
+                <option value="1.2">Sedentary (desk job, little exercise)</option>
+                <option value="1.375">Lightly Active (1-3 days gym/walk)</option>
+                <option value="1.55" selected>Moderately Active (3-5 days workout)</option>
+                <option value="1.725">Very Active (6-7 days hard training)</option>
+                <option value="1.9">Extra Active (physical job & heavy training)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-500 mb-1">Target Goal</label>
+              <select id="calc-goal" class="w-full bg-white dark:bg-slate-800 border rounded p-1.5 font-medium">
+                <option value="lose">Fat Loss (-20% deficit)</option>
+                <option value="maintain" selected>Maintenance</option>
+                <option value="gain">Weight Gain / Lean Bulk (+10% surplus)</option>
+                <option value="heavy-gain">Aggressive Bulk (+20% surplus)</option>
+              </select>
+            </div>
+
+            <button type="button" id="apply-calc-btn" class="w-full py-1.5 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition">
+              Compute & Apply Daily Target
+            </button>
+          </div>
+        </details>
+
+        <!-- Direct Target Settings -->
+        <div class="space-y-3">
+          <div>
+            <label class="block font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Daily Calorie Target (kcal)</label>
+            <input type="number" id="input-target-calories" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 font-bold text-base focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <!-- Split Presets -->
+          <div>
+            <label class="block font-semibold text-xs text-slate-500 uppercase tracking-wider mb-1">Macro Split Preset</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" class="preset-btn px-2 py-1.5 text-xs font-semibold border rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-split="40,30,30">Balanced<br><span class="text-[10px] text-slate-400">40C/30P/30F</span></button>
+              <button type="button" class="preset-btn px-2 py-1.5 text-xs font-semibold border rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-split="25,40,35">High Protein<br><span class="text-[10px] text-slate-400">25C/40P/35F</span></button>
+              <button type="button" class="preset-btn px-2 py-1.5 text-xs font-semibold border rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-split="55,20,25">High Carb / Bulk<br><span class="text-[10px] text-slate-400">55C/20P/25F</span></button>
+            </div>
+          </div>
+
+          <!-- Target Macro Grams -->
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-blue-500 mb-1">Protein (g)</label>
+              <input type="number" id="input-target-protein" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-bold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-500 mb-1">Carbs (g)</label>
+              <input type="number" id="input-target-carbs" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-bold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-rose-500 mb-1">Fats (g)</label>
+              <input type="number" id="input-target-fat" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-bold">
+            </div>
+          </div>
+        </div>
+
+        <button id="save-targets-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-sm">
+          Save Nutrition Target
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // EXTENDED FOOD DATABASE (INDIAN / KERALA / HOSTEL / SMOOTHIES)
+    // ==========================================
+    const FOOD_DATABASE = [
+      // KERALA & HOSTEL BREAKFAST / TIFFIN
+      { id: 'appam', name: 'Appam (Palappam / Vellappam)', serving: '1 piece (50g)', calories: 120, protein: 2, carbs: 24, fat: 1.5, category: 'Hostel / Kerala' },
+      { id: 'idiyappam', name: 'Idiyappam (Noolappam)', serving: '1 piece (45g)', calories: 95, protein: 1.8, carbs: 21, fat: 0.4, category: 'Hostel / Kerala' },
+      { id: 'puttu-rice', name: 'Kerala Rice Puttu with coconut', serving: '1 cylinder / 1 cup (150g)', calories: 280, protein: 5.2, carbs: 54, fat: 4.8, category: 'Hostel / Kerala' },
+      { id: 'kerala-parotta', name: 'Kerala Porotta (Malabar Parotta)', serving: '1 piece (80g)', calories: 290, protein: 5.5, carbs: 38, fat: 12.5, category: 'Hostel / Kerala' },
+      { id: 'wheat-porotta', name: 'Wheat Porotta', serving: '1 piece (80g)', calories: 240, protein: 6.5, carbs: 36, fat: 8, category: 'Hostel / Kerala' },
+      { id: 'idli', name: 'Steamed Idli', serving: '2 pieces (100g)', calories: 130, protein: 4, carbs: 26, fat: 0.5, category: 'Hostel / Kerala' },
+      { id: 'plain-dosa', name: 'Plain Dosa', serving: '1 medium (70g)', calories: 135, protein: 3, carbs: 22, fat: 3.5, category: 'Hostel / Kerala' },
+      { id: 'ghee-roast', name: 'Ghee Roast Dosa', serving: '1 large (100g)', calories: 260, protein: 3.8, carbs: 28, fat: 14.5, category: 'Hostel / Kerala' },
+      { id: 'masala-dosa', name: 'Masala Dosa (Potato filling)', serving: '1 piece (160g)', calories: 310, protein: 5.5, carbs: 45, fat: 11, category: 'Hostel / Kerala' },
+      { id: 'upma-rava', name: 'Rava Upma', serving: '1 cup / bowl (150g)', calories: 215, protein: 4.5, carbs: 32, fat: 7.5, category: 'Hostel / Kerala' },
+      { id: 'semiya-upma', name: 'Vermicelli / Semiya Upma', serving: '1 bowl (150g)', calories: 220, protein: 4.2, carbs: 36, fat: 6.5, category: 'Hostel / Kerala' },
+      { id: 'poori-bhaji', name: 'Poori with Potato Bhaji', serving: '2 pooris + bhaji (200g)', calories: 420, protein: 7, carbs: 52, fat: 21, category: 'Hostel / Kerala' },
+      { id: 'chappathi', name: 'Chappathi / Roti (without oil)', serving: '1 piece (40g)', calories: 85, protein: 3.1, carbs: 17, fat: 0.5, category: 'Grains' },
+      { id: 'chappathi-ghee', name: 'Chappathi with Ghee/Oil', serving: '1 piece (45g)', calories: 115, protein: 3.1, carbs: 17, fat: 4, category: 'Grains' },
+      { id: 'pathiri', name: 'Ari Pathiri (Thin Malabar rice roti)', serving: '1 piece (30g)', calories: 65, protein: 1.1, carbs: 14.5, fat: 0.3, category: 'Hostel / Kerala' },
+
+      // HOSTEL & HOME RICE, MEALS & STAPLES
+      { id: 'matta-rice-cooked', name: 'Kerala Matta Rice (Cooked brown/red)', serving: '1 cup cooked (180g)', calories: 215, protein: 4.6, carbs: 46, fat: 1, category: 'Grains' },
+      { id: 'white-rice-cooked', name: 'White Rice (Cooked Sonamasuri/Basmati)', serving: '1 cup cooked (160g)', calories: 205, protein: 4.2, carbs: 45, fat: 0.4, category: 'Grains' },
+      { id: 'kerala-sadya-meal', name: 'Full Kerala Veg Meals (Rice, Sambar, Aviyal, Thoran)', serving: '1 full thali plate', calories: 680, protein: 14, carbs: 118, fat: 16, category: 'Hostel / Kerala' },
+      { id: 'hostel-rice-curry-basic', name: 'Hostel Rice with Sambar & Omelette', serving: '1 meal serving', calories: 510, protein: 18, carbs: 75, fat: 14, category: 'Hostel / Kerala' },
+      { id: 'kanji-payar', name: 'Rice Kanji with Vanpayar & Chammanthi', serving: '1 large bowl kanji + பயറ്', calories: 340, protein: 12, carbs: 64, fat: 3.5, category: 'Hostel / Kerala' },
+      { id: 'curd-rice', name: 'Curd Rice (Thairu Sadham)', serving: '1 bowl (200g)', calories: 245, protein: 6, carbs: 36, fat: 8, category: 'Hostel / Kerala' },
+      { id: 'lemon-rice', name: 'Lemon Rice / Chithranna', serving: '1 bowl (180g)', calories: 275, protein: 4.5, carbs: 44, fat: 9, category: 'Grains' },
+      { id: 'veg-biryani', name: 'Vegetable Biryani / Pulao', serving: '1 plate (250g)', calories: 360, protein: 6.8, carbs: 56, fat: 11, category: 'Grains' },
+      { id: 'kerala-chicken-biryani', name: 'Malabar Chicken Biryani (Thalassery style)', serving: '1 full plate with 1 chicken piece (350g)', calories: 650, protein: 32, carbs: 74, fat: 24, category: 'Hostel / Kerala' },
+      { id: 'egg-biryani', name: 'Egg Biryani (2 eggs)', serving: '1 plate (300g)', calories: 510, protein: 18, carbs: 68, fat: 17, category: 'Hostel / Kerala' },
+      { id: 'beef-biryani', name: 'Kerala Beef Biryani', serving: '1 plate (350g)', calories: 720, protein: 36, carbs: 72, fat: 31, category: 'Hostel / Kerala' },
+      { id: 'fried-rice-chicken', name: 'Hostel / Fastfood Chicken Fried Rice', serving: '1 plate (300g)', calories: 590, protein: 26, carbs: 76, fat: 20, category: 'Hostel / Kerala' },
+      { id: 'maggi-plain', name: 'Maggi 2-Minute Noodles', serving: '1 single pack (70g)', calories: 310, protein: 6, carbs: 42, fat: 13, category: 'Hostel / Kerala' },
+      { id: 'maggi-egg', name: 'Maggi Noodles with 2 Eggs scrambled', serving: '1 cooked bowl', calories: 460, protein: 18, carbs: 44, fat: 23, category: 'Hostel / Kerala' },
+
+      // KERALA CURRIES & SIDE DISHES (VEG & NON-VEG)
+      { id: 'kerala-chicken-curry', name: 'Kerala Chicken Curry with Gravy', serving: '1 bowl / 2 pieces (180g)', calories: 270, protein: 25, carbs: 5, fat: 16, category: 'Home Curries' },
+      { id: 'chicken-fry-kerala', name: 'Kerala Pepper Chicken Fry / Roast', serving: '150g (3-4 small pieces)', calories: 320, protein: 28, carbs: 6, fat: 20, category: 'Home Curries' },
+      { id: 'beef-fry-kerala', name: 'Kerala Beef Ularthiyathu / Fry with coconut bites', serving: '150g serving', calories: 360, protein: 30, carbs: 4, fat: 24, category: 'Home Curries' },
+      { id: 'beef-curry-kerala', name: 'Kerala Beef Curry (Gravy)', serving: '1 bowl (180g)', calories: 310, protein: 28, carbs: 5, fat: 19, category: 'Home Curries' },
+      { id: 'fish-curry-kudampuli', name: 'Kerala Fish Curry (Meen Mulakittathu with Kudampuli)', serving: '1 bowl with 1 piece fish (150g)', calories: 175, protein: 21, carbs: 3, fat: 8, category: 'Home Curries' },
+      { id: 'fish-curry-coconut', name: 'Fish Molly / Meen Peera with Coconut Milk', serving: '1 bowl (170g)', calories: 250, protein: 20, carbs: 4, fat: 17, category: 'Home Curries' },
+      { id: 'ayala-fry', name: 'Mackerel Fry (Ayala Fry)', serving: '1 medium whole fish (90g)', calories: 195, protein: 19, carbs: 2, fat: 12, category: 'Proteins' },
+      { id: 'mathi-fry', name: 'Sardine Fry (Mathi / Chaala Fry)', serving: '2 pieces (80g)', calories: 180, protein: 18, carbs: 1.5, fat: 11, category: 'Proteins' },
+      { id: 'egg-curry-kerala', name: 'Kerala Egg Roast / Curry (Nadan Mutta Roast)', serving: '2 eggs with gravy', calories: 240, protein: 14, carbs: 8, fat: 16, category: 'Home Curries' },
+      { id: 'kadala-curry', name: 'Nadan Kadala Curry (Black Chickpeas with roasted coconut)', serving: '1 cup / bowl (150g)', calories: 240, protein: 10.5, carbs: 31, fat: 8, category: 'Home Curries' },
+      { id: 'cherupayar-curry', name: 'Cherupayar Curry (Green Moong Dal Curry)', serving: '1 bowl (150g)', calories: 190, protein: 11, carbs: 28, fat: 3.5, category: 'Home Curries' },
+      { id: 'vanpayar-thoran', name: 'Vanpayar (Red Cowpea) Thoran', serving: '1 cup (120g)', calories: 170, protein: 9, carbs: 24, fat: 4, category: 'Home Curries' },
+      { id: 'kerala-sambar', name: 'Kerala Sambar (Mixed veg & Toor Dal)', serving: '1 bowl (150g)', calories: 110, protein: 4.5, carbs: 16, fat: 3, category: 'Home Curries' },
+      { id: 'parippu-curry-ghee', name: 'Kerala Parippu Curry (Moong dal & coconut + ghee)', serving: '1 bowl (120g)', calories: 180, protein: 7.5, carbs: 18, fat: 8.5, category: 'Home Curries' },
+      { id: 'aviyal', name: 'Kerala Aviyal (Mixed veggies with curd & ground coconut)', serving: '1 cup (130g)', calories: 165, protein: 3.5, carbs: 14, fat: 10.5, category: 'Home Curries' },
+      { id: 'cabbage-thoran', name: 'Cabbage Thoran (Stir fry with coconut)', serving: '1 bowl (100g)', calories: 95, protein: 2.2, carbs: 9, fat: 5.5, category: 'Home Curries' },
+      { id: 'mor-curry-pulissery', name: 'Mor Curry / Pulissery (Spiced seasoned buttermilk)', serving: '1 cup (120g)', calories: 85, protein: 2.8, carbs: 6, fat: 5, category: 'Home Curries' },
+      { id: 'chana-masala', name: 'Chana Masala / White Chickpeas Curry', serving: '1 bowl (160g)', calories: 220, protein: 9.5, carbs: 32, fat: 6, category: 'Home Curries' },
+      { id: 'rajma-curry', name: 'Rajma Masala (Kidney Beans Curry)', serving: '1 bowl (160g)', calories: 210, protein: 10, carbs: 30, fat: 5.5, category: 'Home Curries' },
+      { id: 'paneer-butter-masala', name: 'Paneer Butter Masala', serving: '1 bowl (180g)', calories: 360, protein: 12, carbs: 14, fat: 28, category: 'Home Curries' },
+      { id: 'dal-tadka', name: 'Dal Tadka / Dal Fry (North Indian yellow dal)', serving: '1 bowl (150g)', calories: 160, protein: 8, carbs: 21, fat: 5, category: 'Home Curries' },
+      { id: 'potato-kurma', name: 'Vegetable / Potato White Kurma', serving: '1 bowl (150g)', calories: 195, protein: 3.5, carbs: 22, fat: 10, category: 'Home Curries' },
+
+      // BULKING & HEALTH SMOOTHIES, SHAKES & DRINKS
+      { id: 'oats-pb-banana-smoothie', name: 'High-Calorie Bulking Smoothie (Oats, PB, Banana, Milk)', serving: '1 tall glass (450ml)', calories: 580, protein: 24, carbs: 78, fat: 20, category: 'Smoothies & Shakes' },
+      { id: 'heavy-bulk-smoothie', name: 'Mega Mass Shake (Oats, 2 Bananas, Milk, PB, Dates, Seeds)', serving: '1 mega mug (550ml)', calories: 780, protein: 31, carbs: 108, fat: 27, category: 'Smoothies & Shakes' },
+      { id: 'whey-banana-shake', name: 'Whey Protein + Milk + 1 Banana Shake', serving: '1 shaker (350ml)', calories: 340, protein: 33, carbs: 38, fat: 5.5, category: 'Smoothies & Shakes' },
+      { id: 'raw-whey-water', name: 'Whey Protein (1 Scoop in 250ml water)', serving: '1 scoop (30g powder)', calories: 120, protein: 24, carbs: 2.5, fat: 1.5, category: 'Smoothies & Shakes' },
+      { id: 'avocado-shake', name: 'Kerala Bakeries Avocado / Butterfruit Shake (Sweetened)', serving: '1 glass (300ml)', calories: 340, protein: 4.5, carbs: 42, fat: 18, category: 'Smoothies & Shakes' },
+      { id: 'shamam-shake', name: 'Shamam Shake (Muskmelon shake with milk)', serving: '1 glass (300ml)', calories: 190, protein: 4, carbs: 34, fat: 4, category: 'Smoothies & Shakes' },
+      { id: 'sharjah-shake', name: 'Kerala Sharjah Shake (Banana, Boost/Horlicks, Milk, Peanuts)', serving: '1 large glass (350ml)', calories: 420, protein: 11, carbs: 64, fat: 14, category: 'Smoothies & Shakes' },
+      { id: 'mango-shake', name: 'Mango Milkshake (Sweetened)', serving: '1 glass (300ml)', calories: 260, protein: 5, carbs: 46, fat: 6, category: 'Smoothies & Shakes' },
+      { id: 'badam-milk', name: 'Warm Badam Milk (Almond Milk)', serving: '1 cup (200ml)', calories: 180, protein: 5.5, carbs: 22, fat: 8, category: 'Smoothies & Shakes' },
+      { id: 'sambharam-buttermilk', name: 'Nadan Sambharam (Salted spiced buttermilk with ginger & chilli)', serving: '1 glass (250ml)', calories: 45, protein: 2.5, carbs: 3.5, fat: 2, category: 'Smoothies & Shakes' },
+      { id: 'sweet-lassi', name: 'Sweet Punjabi Lassi', serving: '1 glass (250ml)', calories: 230, protein: 6, carbs: 34, fat: 8, category: 'Smoothies & Shakes' },
+      { id: 'chai-milk', name: 'Indian Milk Tea / Chai (with 1.5 tsp sugar)', serving: '1 cup (120ml)', calories: 85, protein: 2.6, carbs: 12, fat: 3, category: 'Smoothies & Shakes' },
+      { id: 'black-tea-sulaimani', name: 'Sulaimani / Black Tea (1 tsp sugar)', serving: '1 cup (120ml)', calories: 25, protein: 0.1, carbs: 6, fat: 0, category: 'Smoothies & Shakes' },
+      { id: 'filter-coffee', name: 'Filter Coffee (South Indian with milk & sugar)', serving: '1 tumbler (120ml)', calories: 95, protein: 2.8, carbs: 13, fat: 3.4, category: 'Smoothies & Shakes' },
+      { id: 'tender-coconut', name: 'Elaneer (Fresh Tender Coconut Water)', serving: '1 whole nut (250ml)', calories: 48, protein: 1.5, carbs: 10, fat: 0.5, category: 'Smoothies & Shakes' },
+
+      // RAW / INGREDIENT LEVEL PROTEINS, NUTS & DAIRY
+      { id: 'boiled-egg-whole', name: 'Boiled Egg (Whole, Large)', serving: '1 egg (50g)', calories: 74, protein: 6.3, carbs: 0.4, fat: 5, category: 'Proteins' },
+      { id: 'boiled-egg-white', name: 'Egg White (Boiled)', serving: '1 egg white (33g)', calories: 17, protein: 3.6, carbs: 0.2, fat: 0.1, category: 'Proteins' },
+      { id: 'egg-omelette-single', name: 'Single Egg Omelette (with onion & chilli in oil)', serving: '1 egg prepared (60g)', calories: 125, protein: 6.8, carbs: 2, fat: 10, category: 'Proteins' },
+      { id: 'egg-bhurji', name: 'Egg Mutta Bhurji / Scramble (2 eggs)', serving: '2 eggs serving (120g)', calories: 220, protein: 13, carbs: 4, fat: 17, category: 'Proteins' },
+      { id: 'chicken-breast-boiled', name: 'Chicken Breast (Boiled / Grilled skinless)', serving: '100g cooked', calories: 165, protein: 31, carbs: 0, fat: 3.6, category: 'Proteins' },
+      { id: 'paneer-raw', name: 'Raw Malai Paneer (Cottage Cheese)', serving: '100g', calories: 295, protein: 18, carbs: 3.5, fat: 23, category: 'Proteins' },
+      { id: 'soya-chunks-raw', name: 'Soya Chunks / Mealmaker (Dry weighed)', serving: '50g dry', calories: 172, protein: 26, carbs: 16, fat: 0.5, category: 'Proteins' },
+      { id: 'tofu-firm', name: 'Firm Tofu', serving: '100g', calories: 85, protein: 9.5, carbs: 2, fat: 4.8, category: 'Proteins' },
+      { id: 'whole-milk-toned', name: 'Toned Cow Milk (Nandini/Milma blue)', serving: '1 glass (250ml)', calories: 150, protein: 8, carbs: 12, fat: 7.5, category: 'Proteins' },
+      { id: 'curd-yogurt', name: 'Plain Fresh Curd (Thairu / Dahi)', serving: '1 bowl / cup (150g)', calories: 105, protein: 5.5, carbs: 7, fat: 6, category: 'Proteins' },
+      { id: 'peanut-butter', name: 'Peanut Butter (100% Roasted Peanuts)', serving: '1 tbsp (16g) / 32g 2tbsp', calories: 95, protein: 4.2, carbs: 3, fat: 8, category: 'Smoothies & Shakes' },
+      { id: 'rolled-oats-raw', name: 'Rolled Oats (Raw)', serving: '40g (1/2 cup)', calories: 155, protein: 5.5, carbs: 27, fat: 2.8, category: 'Grains' },
+      { id: 'pumpkin-seeds', name: 'Roasted Pumpkin Seeds', serving: '1 tbsp (15g)', calories: 85, protein: 4.5, carbs: 2.2, fat: 7.2, category: 'Snacks' },
+      { id: 'peanuts-roasted', name: 'Roasted Peanuts / Kappalandi', serving: 'Handful (30g)', calories: 175, protein: 7.8, carbs: 6, fat: 14.5, category: 'Snacks' },
+      { id: 'almonds-badam', name: 'Raw Almonds (Badam)', serving: '10 nuts (12g)', calories: 70, protein: 2.5, carbs: 2.5, fat: 6, category: 'Snacks' },
+      { id: 'dates-eendapazham', name: 'Dates (Eendapazham)', serving: '3 dates (24g)', calories: 68, protein: 0.6, carbs: 18, fat: 0.1, category: 'Snacks' },
+      { id: 'robusta-banana', name: 'Banana (Robusta / Yellow medium)', serving: '1 medium fruit (110g)', calories: 100, protein: 1.2, carbs: 26, fat: 0.3, category: 'Snacks' },
+      { id: 'nendran-banana', name: 'Nendran Pazham (Raw / Fresh ripe)', serving: '1 ripe banana (130g)', calories: 150, protein: 1.8, carbs: 38, fat: 0.4, category: 'Snacks' },
+      { id: 'steamed-nendran', name: 'Puzhungiya Nendrapazham (Steamed Kerala Banana)', serving: '1 banana (130g)', calories: 152, protein: 1.8, carbs: 38, fat: 0.4, category: 'Hostel / Kerala' },
+      { id: 'pure-desi-ghee', name: 'Pure Desi Ghee (Clarified Butter)', serving: '1 teaspoon (5g)', calories: 45, protein: 0, carbs: 0, fat: 5, category: 'Home Curries' },
+      { id: 'coconut-oil', name: 'Pure Coconut Oil (Velichenna)', serving: '1 teaspoon (5g)', calories: 44, protein: 0, carbs: 0, fat: 5, category: 'Home Curries' },
+
+      // POPULAR INDIAN SNACKS & EVENING BITES
+      { id: 'pazham-pori', name: 'Pazham Pori (Ethakka Appam / Banana Fritter)', serving: '1 piece (80g)', calories: 210, protein: 2.5, carbs: 36, fat: 6.8, category: 'Snacks' },
+      { id: 'uzhunnu-vada', name: 'Uzhunnu Vada (Medu Vada)', serving: '1 piece (50g)', calories: 165, protein: 4.2, carbs: 16, fat: 9.8, category: 'Snacks' },
+      { id: 'parippu-vada', name: 'Parippu Vada (Masala Dal Vada / Crunchy)', serving: '1 piece (50g)', calories: 150, protein: 4.8, carbs: 17, fat: 7.5, category: 'Snacks' },
+      { id: 'veg-samosa', name: 'Vegetable Potato Samosa', serving: '1 piece (80g)', calories: 230, protein: 3.5, carbs: 27, fat: 12, category: 'Snacks' },
+      { id: 'chicken-samosa', name: 'Chicken Samosa', serving: '1 piece (75g)', calories: 215, protein: 8, carbs: 22, fat: 10.5, category: 'Snacks' },
+      { id: 'chicken-roll', name: 'Bakery Chicken Roll / Shawarma roll', serving: '1 roll (150g)', calories: 340, protein: 16, carbs: 34, fat: 16, category: 'Snacks' },
+      { id: 'egg-puff', name: 'Kerala Bakery Egg Puff (Mutta Puff)', serving: '1 puff (100g)', calories: 285, protein: 6.8, carbs: 26, fat: 17.5, category: 'Snacks' },
+      { id: 'chicken-puff', name: 'Bakery Chicken Puff', serving: '1 puff (110g)', calories: 320, protein: 11, carbs: 27, fat: 19, category: 'Snacks' },
+      { id: 'unniyappam', name: 'Unniyappam (Neyyappam sweet bite)', serving: '1 piece (35g)', calories: 120, protein: 1.2, carbs: 21, fat: 3.8, category: 'Snacks' },
+      { id: 'sukhiyan', name: 'Sukhiyan (Sweet green gram ball fritter)', serving: '1 piece (60g)', calories: 175, protein: 4.5, carbs: 31, fat: 4.2, category: 'Snacks' },
+      { id: 'kerala-banana-chips', name: 'Upperi / Kerala Banana Chips (Fried in coconut oil)', serving: 'Small bowl (40g)', calories: 215, protein: 1.2, carbs: 25, fat: 13, category: 'Snacks' },
+      { id: 'halwa-kerala', name: 'Calicut Black / Kozhikodan Halwa', serving: '1 slice (50g)', calories: 220, protein: 0.5, carbs: 38, fat: 7.5, category: 'Snacks' },
+      { id: 'sweet-corn-boiled', name: 'Boiled Sweet Corn with butter & salt', serving: '1 cup (150g)', calories: 160, protein: 4.5, carbs: 32, fat: 3, category: 'Snacks' }
     ];
 
-    let apps = JSON.parse(localStorage.getItem('hub_apps')) || defaultApps;
-    let masterPin = localStorage.getItem('hub_pin') || null;
-    
-    let pendingAction = null; 
-    let pendingUrl = ""; 
-    let editingId = null; // Track which app is currently being edited
+    // ==========================================
+    // STATE MANAGEMENT & LOCAL STORAGE
+    // ==========================================
+    const DEFAULT_TARGETS = {
+      calories: 2200,
+      protein: 140,
+      carbs: 250,
+      fat: 70
+    };
 
-    function renderApps() {
-        const grid = document.getElementById('app-grid');
-        const settingsList = document.getElementById('settings-app-list');
-        grid.innerHTML = "";
-        settingsList.innerHTML = "<h3>Manage Options</h3>";
+    let state = {
+      currentDate: getTodayString(),
+      targets: { ...DEFAULT_TARGETS },
+      logs: {}, // Format: { "YYYY-MM-DD": { meals: [ {id, name, mealType, calories, protein, carbs, fat, serving} ], water: 0 } }
+      activeCategory: 'All',
+      selectedLibraryItem: null
+    };
 
-        apps.forEach(app => {
-            // Render Dashboard Card
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = () => handleAppClick(app);
-            card.innerHTML = `
-                ${app.locked ? '<div class="lock-icon">🔒</div>' : ''}
-                <div class="icon">${app.icon}</div>
-                <h2>${app.name}</h2>
-            `;
-            grid.appendChild(card);
+    function getTodayString() {
+      const d = new Date();
+      return d.toISOString().split('T')[0];
+    }
 
-            // Render Settings List Item
-            const listItem = document.createElement('div');
-            listItem.className = 'settings-item';
-            
-            if (editingId === app.id) {
-                // Render Edit Mode
-                listItem.classList.add('edit-mode');
-                listItem.innerHTML = `
-                    <div class="settings-item-content">
-                        <input type="text" id="edit-name-${app.id}" value="${app.name}" placeholder="Name">
-                        <input type="text" id="edit-url-${app.id}" value="${app.url}" placeholder="URL">
-                        <input type="text" id="edit-icon-${app.id}" value="${app.icon}" placeholder="Emoji">
-                        <label class="checkbox-group" style="margin-bottom:0; font-size:12px;">
-                            <input type="checkbox" id="edit-locked-${app.id}" ${app.locked ? 'checked' : ''}> Locked
-                        </label>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:5px;">
-                        <button class="primary" style="margin:0; padding:5px 10px; font-size:12px; background:#27ae60;" onclick="saveEdit(${app.id})">Save</button>
-                        <button class="danger" onclick="cancelEdit()">Cancel</button>
-                    </div>
-                `;
-            } else {
-                // Render Normal Mode
-                listItem.innerHTML = `
-                    <div class="settings-item-content">
-                        <span>${app.icon} ${app.name} ${app.locked ? '🔒' : '🔓'}</span>
-                    </div>
-                    <div>
-                        <button style="padding:5px 10px;" onclick="startEdit(${app.id})">Edit</button>
-                        <button class="danger" style="margin-left:5px;" onclick="deleteApp(${app.id})">Del</button>
-                    </div>
-                `;
-            }
-            settingsList.appendChild(listItem);
+    function initStorage() {
+      const savedTargets = localStorage.getItem('macrotrack_targets');
+      if (savedTargets) {
+        try { state.targets = JSON.parse(savedTargets); } catch (e) {}
+      }
+      const savedLogs = localStorage.getItem('macrotrack_logs');
+      if (savedLogs) {
+        try { state.logs = JSON.parse(savedLogs); } catch (e) {}
+      }
+      ensureDateLog(state.currentDate);
+    }
+
+    function saveState() {
+      localStorage.setItem('macrotrack_targets', JSON.stringify(state.targets));
+      localStorage.setItem('macrotrack_logs', JSON.stringify(state.logs));
+    }
+
+    function ensureDateLog(dateKey) {
+      if (!state.logs[dateKey]) {
+        state.logs[dateKey] = {
+          meals: [],
+          water: 0
+        };
+      }
+    }
+
+    // ==========================================
+    // UI RENDERING
+    // ==========================================
+    function renderApp() {
+      ensureDateLog(state.currentDate);
+      const dayData = state.logs[state.currentDate];
+
+      // Set Date inputs
+      document.getElementById('current-date-input').value = state.currentDate;
+
+      // Calculate totals
+      let consumedCals = 0;
+      let consumedP = 0;
+      let consumedC = 0;
+      let consumedF = 0;
+
+      dayData.meals.forEach(item => {
+        consumedCals += Number(item.calories) || 0;
+        consumedP += Number(item.protein) || 0;
+        consumedC += Number(item.carbs) || 0;
+        consumedF += Number(item.fat) || 0;
+      });
+
+      // Update Top Target Display
+      document.getElementById('target-calories').textContent = state.targets.calories;
+      document.getElementById('consumed-calories').textContent = Math.round(consumedCals);
+
+      const netBalance = state.targets.calories - consumedCals;
+      const balanceEl = document.getElementById('balance-calories');
+      const leftValEl = document.getElementById('calories-left-val');
+      const leftLabelEl = document.getElementById('calories-left-label');
+
+      if (netBalance >= 0) {
+        balanceEl.textContent = `+${Math.round(netBalance)}`;
+        balanceEl.className = "font-bold text-emerald-600 dark:text-emerald-400";
+        leftValEl.textContent = Math.round(netBalance);
+        leftLabelEl.textContent = "Remaining";
+        leftLabelEl.className = "text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1";
+      } else {
+        balanceEl.textContent = `${Math.round(netBalance)}`;
+        balanceEl.className = "font-bold text-rose-600 dark:text-rose-400";
+        leftValEl.textContent = Math.abs(Math.round(netBalance));
+        leftLabelEl.textContent = "Over Target";
+        leftLabelEl.className = "text-[10px] text-rose-500 font-bold uppercase tracking-wider mt-1";
+      }
+
+      // Circular SVG Progress calculation (Circumference ~ 314.159)
+      const circumference = 314.159;
+      const meterEl = document.getElementById('calorie-progress-meter');
+      let pctCals = Math.min(consumedCals / (state.targets.calories || 1), 1);
+      let offset = circumference - (pctCals * circumference);
+      meterEl.style.strokeDashoffset = offset;
+      if (consumedCals > state.targets.calories) {
+        meterEl.setAttribute('class', 'text-rose-500 transition-all duration-500 ease-out');
+      } else {
+        meterEl.setAttribute('class', 'text-blue-600 transition-all duration-500 ease-out');
+      }
+
+      // Macro linear indicators
+      renderMacroBar('protein', consumedP, state.targets.protein);
+      renderMacroBar('carbs', consumedC, state.targets.carbs);
+      renderMacroBar('fat', consumedF, state.targets.fat);
+
+      // Caloric percentage share bar
+      const calFromP = consumedP * 4;
+      const calFromC = consumedC * 4;
+      const calFromF = consumedF * 9;
+      const totalMacroCals = (calFromP + calFromC + calFromF) || 1;
+
+      const pShare = Math.round((calFromP / totalMacroCals) * 100);
+      const cShare = Math.round((calFromC / totalMacroCals) * 100);
+      const fShare = Math.round((calFromF / totalMacroCals) * 100);
+
+      document.getElementById('ratio-protein').style.width = `${pShare}%`;
+      document.getElementById('ratio-carbs').style.width = `${cShare}%`;
+      document.getElementById('ratio-fat').style.width = `${fShare}%`;
+
+      document.getElementById('ratio-label-protein').textContent = `P: ${pShare}%`;
+      document.getElementById('ratio-label-carbs').textContent = `C: ${cShare}%`;
+      document.getElementById('ratio-label-fat').textContent = `F: ${fShare}%`;
+
+      // Water UI
+      const waterVal = dayData.water || 0;
+      document.getElementById('water-intake-val').textContent = waterVal;
+      const waterPct = Math.min((waterVal / 3000) * 100, 100);
+      document.getElementById('water-bar').style.width = `${waterPct}%`;
+
+      // Render Meal Groups
+      renderMealSections(dayData.meals);
+    }
+
+    function renderMacroBar(macro, consumed, target) {
+      document.getElementById(`consumed-${macro}`).textContent = Math.round(consumed);
+      document.getElementById(`target-${macro}`).textContent = target;
+      const pct = Math.min((consumed / (target || 1)) * 100, 100);
+      const bar = document.getElementById(`bar-${macro}`);
+      bar.style.width = `${pct}%`;
+      if (consumed > target) {
+        bar.classList.add('opacity-90');
+      }
+    }
+
+    function renderMealSections(meals) {
+      const container = document.getElementById('meals-container');
+      const mealCategories = ['Breakfast', 'Lunch', 'Snacks', 'Dinner'];
+
+      let html = '';
+
+      mealCategories.forEach(cat => {
+        const items = meals.filter(m => m.mealType === cat);
+        let catCals = 0;
+        let catP = 0, catC = 0, catF = 0;
+
+        items.forEach(i => {
+          catCals += Number(i.calories) || 0;
+          catP += Number(i.protein) || 0;
+          catC += Number(i.carbs) || 0;
+          catF += Number(i.fat) || 0;
         });
+
+        html += `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 class="font-bold text-sm tracking-tight">${cat}</h3>
+                <span class="text-xs text-slate-400">${items.length} item${items.length === 1 ? '' : 's'}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-sm text-blue-600 dark:text-blue-400">${Math.round(catCals)} kcal</span>
+                <div class="text-[10px] text-slate-400 flex gap-2 font-medium justify-end">
+                  <span>P: ${Math.round(catP)}g</span>
+                  <span>C: ${Math.round(catC)}g</span>
+                  <span>F: ${Math.round(catF)}g</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Items -->
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+              ${items.length === 0 ? `
+                <div class="py-4 text-center text-xs text-slate-400 italic">No food logged for ${cat.toLowerCase()} yet.</div>
+              ` : items.map(item => `
+                <div class="py-3 flex items-center justify-between group">
+                  <div class="pr-2">
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">${escapeHtml(item.name)}</p>
+                    <p class="text-xs text-slate-400">${escapeHtml(item.serving || '')} &bull; <span class="font-medium text-slate-600 dark:text-slate-300">${item.calories} kcal</span> (P: ${item.protein}g | C: ${item.carbs}g | F: ${item.fat}g)</p>
+                  </div>
+                  <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
+                    <button onclick="duplicateMealItem('${item.id}')" class="p-1 hover:text-blue-600 text-slate-400 rounded" title="Duplicate item">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button onclick="deleteMealItem('${item.id}')" class="p-1 hover:text-rose-600 text-slate-400 rounded" title="Remove item">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
     }
 
-    function saveAndRender() {
-        localStorage.setItem('hub_apps', JSON.stringify(apps));
-        renderApps();
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function handleAppClick(app) {
-        if (app.locked) {
-            if (!masterPin) {
-                alert("App is locked, but no PIN is set! Go to settings to set a PIN.");
-                return;
-            }
-            pendingAction = 'app';
-            pendingUrl = app.url;
-            showPinModal();
-        } else {
-            window.location.href = app.url;
-        }
+    // ==========================================
+    // FOOD SEARCH & MODAL LOGIC
+    // ==========================================
+    function filterFoodLibrary() {
+      const query = document.getElementById('food-search-input').value.toLowerCase().trim();
+      const resultsContainer = document.getElementById('food-search-results');
+
+      const filtered = FOOD_DATABASE.filter(item => {
+        const matchesCategory = (state.activeCategory === 'All') || (item.category === state.activeCategory);
+        const matchesQuery = item.name.toLowerCase().includes(query) || (item.category && item.category.toLowerCase().includes(query));
+        return matchesCategory && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        resultsContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">No matching food found. You can switch to "Custom Entry" tab above to add anything manually!</div>`;
+        return;
+      }
+
+      resultsContainer.innerHTML = filtered.map(item => `
+        <div onclick="selectFoodItem('${item.id}')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 cursor-pointer bg-white dark:bg-slate-800/80 flex items-center justify-between transition">
+          <div>
+            <p class="font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-100">${item.name}</p>
+            <p class="text-[11px] text-slate-400">${item.serving} &bull; <span class="text-blue-600 dark:text-blue-400 font-semibold">${item.calories} kcal</span></p>
+          </div>
+          <div class="text-right text-[10px] text-slate-500 dark:text-slate-400">
+            <span>P: ${item.protein}g</span> | 
+            <span>C: ${item.carbs}g</span> | 
+            <span>F: ${item.fat}g</span>
+          </div>
+        </div>
+      `).join('');
     }
 
-    function openSettings() {
-        if (masterPin) {
-            pendingAction = 'settings';
-            showPinModal();
-        } else {
-            document.getElementById('settings-modal').style.display = 'flex';
-        }
+    function selectFoodItem(id) {
+      const item = FOOD_DATABASE.find(f => f.id === id);
+      if (!item) return;
+
+      state.selectedLibraryItem = item;
+      const previewBox = document.getElementById('selected-library-item-config');
+      previewBox.classList.remove('hidden');
+
+      document.getElementById('selected-item-title').textContent = item.name;
+      document.getElementById('selected-item-macros').textContent = `${item.calories} kcal | P: ${item.protein}g C: ${item.carbs}g F: ${item.fat}g (${item.serving})`;
+      document.getElementById('selected-item-servings').value = 1;
     }
 
-    function showPinModal() {
-        document.getElementById('pin-modal').style.display = 'flex';
-        document.getElementById('pin-input').value = '';
-        document.getElementById('pin-input').focus();
+    function addSelectedLibraryItem() {
+      if (!state.selectedLibraryItem) return;
+      const multiplier = parseFloat(document.getElementById('selected-item-servings').value) || 1;
+      const mealType = document.getElementById('modal-meal-type').value;
+
+      const base = state.selectedLibraryItem;
+      const newEntry = {
+        id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: base.name,
+        mealType: mealType,
+        serving: multiplier === 1 ? base.serving : `${multiplier}x (${base.serving})`,
+        calories: Math.round(base.calories * multiplier),
+        protein: Math.round(base.protein * multiplier * 10) / 10,
+        carbs: Math.round(base.carbs * multiplier * 10) / 10,
+        fat: Math.round(base.fat * multiplier * 10) / 10
+      };
+
+      state.logs[state.currentDate].meals.push(newEntry);
+      saveState();
+      renderApp();
+      closeFoodModal();
     }
 
-    function verifyPin() {
-        const entered = document.getElementById('pin-input').value;
-        if (entered === masterPin) {
-            document.getElementById('pin-error').style.display = 'none';
-            const actionToTake = pendingAction;
-            closeModal('pin-modal');
-            
-            if (actionToTake === 'app') {
-                window.location.href = pendingUrl;
-            } else if (actionToTake === 'settings') {
-                document.getElementById('settings-modal').style.display = 'flex';
-            }
-        } else {
-            document.getElementById('pin-error').style.display = 'block';
-        }
+    function addCustomItem() {
+      const name = document.getElementById('custom-name').value.trim();
+      if (!name) {
+        alert('Please enter a food name');
+        return;
+      }
+
+      let p = parseFloat(document.getElementById('custom-protein').value) || 0;
+      let c = parseFloat(document.getElementById('custom-carbs').value) || 0;
+      let f = parseFloat(document.getElementById('custom-fat').value) || 0;
+      let calInput = document.getElementById('custom-calories').value.trim();
+
+      let cal = calInput ? parseFloat(calInput) : Math.round((p * 4) + (c * 4) + (f * 9));
+      let serving = document.getElementById('custom-serving').value.trim() || '1 serving';
+      let mealType = document.getElementById('modal-meal-type').value;
+
+      const newEntry = {
+        id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: name,
+        mealType: mealType,
+        serving: serving,
+        calories: cal,
+        protein: p,
+        carbs: c,
+        fat: f
+      };
+
+      state.logs[state.currentDate].meals.push(newEntry);
+      saveState();
+      renderApp();
+      closeFoodModal();
     }
 
-    function setNewPin() {
-        const newPin = prompt("Enter your new master PIN (leave blank to remove lock):");
-        if (newPin !== null) {
-            masterPin = newPin || null;
-            if (masterPin) {
-                localStorage.setItem('hub_pin', masterPin);
-            } else {
-                localStorage.removeItem('hub_pin');
-            }
-            alert("Master PIN updated.");
-        }
+    function deleteMealItem(id) {
+      state.logs[state.currentDate].meals = state.logs[state.currentDate].meals.filter(m => m.id !== id);
+      saveState();
+      renderApp();
     }
 
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-        if (id === 'pin-modal') {
-             document.getElementById('pin-error').style.display = 'none';
-        }
-        pendingAction = null;
-        editingId = null; // Close any open edit fields when closing settings
-        if(id === 'settings-modal') renderApps();
+    function duplicateMealItem(id) {
+      const item = state.logs[state.currentDate].meals.find(m => m.id === id);
+      if (item) {
+        const copy = { ...item, id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5) };
+        state.logs[state.currentDate].meals.push(copy);
+        saveState();
+        renderApp();
+      }
     }
 
-    function addApp() {
-        const name = document.getElementById('new-name').value;
-        const url = document.getElementById('new-url').value;
-        const icon = document.getElementById('new-icon').value;
-        const locked = document.getElementById('new-locked').checked;
-
-        if (!name || !url) return alert("Name and URL are required!");
-
-        apps.push({ id: Date.now(), name, url, icon, locked });
-        
-        document.getElementById('new-name').value = '';
-        document.getElementById('new-url').value = '';
-        document.getElementById('new-icon').value = '';
-        document.getElementById('new-locked').checked = false;
-
-        saveAndRender();
+    function adjustWater(amount) {
+      ensureDateLog(state.currentDate);
+      let cur = state.logs[state.currentDate].water || 0;
+      cur = Math.max(0, cur + amount);
+      state.logs[state.currentDate].water = cur;
+      saveState();
+      renderApp();
     }
 
-    function deleteApp(id) {
-        if(confirm("Are you sure you want to delete this option?")) {
-            apps = apps.filter(app => app.id !== id);
-            saveAndRender();
-        }
+    // ==========================================
+    // MODAL VISIBILITY & TABS
+    // ==========================================
+    function openFoodModal() {
+      document.getElementById('add-food-modal').classList.remove('hidden');
+      document.getElementById('food-search-input').value = '';
+      state.selectedLibraryItem = null;
+      document.getElementById('selected-library-item-config').classList.add('hidden');
+      switchFoodTab('library');
+      filterFoodLibrary();
     }
 
-    // --- New Edit Functions --- //
-    
-    function startEdit(id) {
-        editingId = id;
-        renderApps(); // Re-render to show the input fields for this specific app
+    function closeFoodModal() {
+      document.getElementById('add-food-modal').classList.add('hidden');
     }
 
-    function cancelEdit() {
-        editingId = null;
-        renderApps(); // Re-render to revert back to text view
+    function switchFoodTab(tab) {
+      const libTabBtn = document.getElementById('tab-library-btn');
+      const custTabBtn = document.getElementById('tab-custom-btn');
+      const libView = document.getElementById('view-library');
+      const custView = document.getElementById('view-custom');
+
+      if (tab === 'library') {
+        libTabBtn.className = "flex-1 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400";
+        custTabBtn.className = "flex-1 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent";
+        libView.classList.remove('hidden');
+        custView.classList.add('hidden');
+      } else {
+        custTabBtn.className = "flex-1 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400";
+        libTabBtn.className = "flex-1 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent";
+        custView.classList.remove('hidden');
+        libView.classList.add('hidden');
+      }
     }
 
-    function saveEdit(id) {
-        const app = apps.find(a => a.id === id);
-        if (app) {
-            const newName = document.getElementById(`edit-name-${id}`).value;
-            const newUrl = document.getElementById(`edit-url-${id}`).value;
-            
-            if (!newName || !newUrl) {
-                alert("Name and URL cannot be empty!");
-                return;
-            }
-
-            app.name = newName;
-            app.url = newUrl;
-            app.icon = document.getElementById(`edit-icon-${id}`).value || app.icon;
-            app.locked = document.getElementById(`edit-locked-${id}`).checked;
-            
-            editingId = null; // Close edit mode
-            saveAndRender();
-        }
+    function openTargetModal() {
+      document.getElementById('targets-modal').classList.remove('hidden');
+      document.getElementById('input-target-calories').value = state.targets.calories;
+      document.getElementById('input-target-protein').value = state.targets.protein;
+      document.getElementById('input-target-carbs').value = state.targets.carbs;
+      document.getElementById('input-target-fat').value = state.targets.fat;
     }
 
-    renderApps();
-</script>
+    function closeTargetModal() {
+      document.getElementById('targets-modal').classList.add('hidden');
+    }
+
+    function saveNutritionTargets() {
+      const cal = parseInt(document.getElementById('input-target-calories').value) || 2000;
+      const p = parseInt(document.getElementById('input-target-protein').value) || 150;
+      const c = parseInt(document.getElementById('input-target-carbs').value) || 200;
+      const f = parseInt(document.getElementById('input-target-fat').value) || 65;
+
+      state.targets = { calories: cal, protein: p, carbs: c, fat: f };
+      saveState();
+      renderApp();
+      closeTargetModal();
+    }
+
+    // ==========================================
+    // MIFFLIN-ST JEOR CALCULATOR
+    // ==========================================
+    function calculateMifflinStJeor() {
+      const gender = document.getElementById('calc-gender').value;
+      const age = parseFloat(document.getElementById('calc-age').value) || 25;
+      const weight = parseFloat(document.getElementById('calc-weight').value) || 70;
+      const height = parseFloat(document.getElementById('calc-height').value) || 175;
+      const activity = parseFloat(document.getElementById('calc-activity').value) || 1.55;
+      const goal = document.getElementById('calc-goal').value;
+
+      // Formula: BMR = 10*weight + 6.25*height - 5*age + (male: +5, female: -161)
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+
+      let tdee = bmr * activity;
+
+      if (goal === 'lose') {
+        tdee *= 0.80; // 20% deficit
+      } else if (goal === 'gain') {
+        tdee *= 1.10; // 10% surplus
+      } else if (goal === 'heavy-gain') {
+        tdee *= 1.20; // 20% surplus
+      }
+
+      const finalCals = Math.round(tdee);
+      document.getElementById('input-target-calories').value = finalCals;
+
+      // Apply default balanced 40C / 30P / 30F split
+      applyMacroSplit(40, 30, 30, finalCals);
+    }
+
+    function applyMacroSplit(cShare, pShare, fShare, targetCals) {
+      const cal = targetCals || parseInt(document.getElementById('input-target-calories').value) || 2000;
+      const pGrams = Math.round((cal * (pShare / 100)) / 4);
+      const cGrams = Math.round((cal * (cShare / 100)) / 4);
+      const fGrams = Math.round((cal * (fShare / 100)) / 9);
+
+      document.getElementById('input-target-protein').value = pGrams;
+      document.getElementById('input-target-carbs').value = cGrams;
+      document.getElementById('input-target-fat').value = fGrams;
+    }
+
+    // ==========================================
+    // EXPORT / COPY TO CLIPBOARD
+    // ==========================================
+    function copyDailySummary() {
+      const dayData = state.logs[state.currentDate];
+      let consumedCals = 0, p = 0, c = 0, f = 0;
+
+      dayData.meals.forEach(m => {
+        consumedCals += Number(m.calories) || 0;
+        p += Number(m.protein) || 0;
+        c += Number(m.carbs) || 0;
+        f += Number(m.fat) || 0;
+      });
+
+      let summaryText = `Daily Nutrition Log (${state.currentDate})\n`;
+      summaryText += `Total Calories: ${Math.round(consumedCals)} / ${state.targets.calories} kcal\n`;
+      summaryText += `Protein: ${Math.round(p)}g | Carbs: ${Math.round(c)}g | Fats: ${Math.round(f)}g\n`;
+      summaryText += `Water: ${dayData.water || 0} ml\n\nMeals Logged:\n`;
+
+      dayData.meals.forEach(m => {
+        summaryText += `- [${m.mealType}] ${m.name} (${m.serving}): ${m.calories} kcal (P: ${m.protein}g, C: ${m.carbs}g, F: ${m.fat}g)\n`;
+      });
+
+      navigator.clipboard.writeText(summaryText).then(() => {
+        const btn = document.getElementById('copy-summary-btn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-600 font-bold">Copied to Clipboard!</span>`;
+        setTimeout(() => btn.innerHTML = orig, 2000);
+      }).catch(err => {
+        alert('Could not copy to clipboard.');
+      });
+    }
+
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initStorage();
+      renderApp();
+
+      // Theme toggle
+      const themeBtn = document.getElementById('theme-toggle');
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+      themeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+      });
+
+      // Date Navigation
+      document.getElementById('current-date-input').addEventListener('change', (e) => {
+        state.currentDate = e.target.value;
+        renderApp();
+      });
+
+      document.getElementById('prev-date-btn').addEventListener('click', () => {
+        const d = new Date(state.currentDate);
+        d.setDate(d.getDate() - 1);
+        state.currentDate = d.toISOString().split('T')[0];
+        renderApp();
+      });
+
+      document.getElementById('next-date-btn').addEventListener('click', () => {
+        const d = new Date(state.currentDate);
+        d.setDate(d.getDate() + 1);
+        state.currentDate = d.toISOString().split('T')[0];
+        renderApp();
+      });
+
+      // Modals
+      document.getElementById('open-add-food-btn').addEventListener('click', openFoodModal);
+      document.getElementById('open-target-modal-btn').addEventListener('click', openTargetModal);
+      document.getElementById('tab-library-btn').addEventListener('click', () => switchFoodTab('library'));
+      document.getElementById('tab-custom-btn').addEventListener('click', () => switchFoodTab('custom'));
+
+      // Food Search Input & Pills
+      document.getElementById('food-search-input').addEventListener('input', filterFoodLibrary);
+
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.cat-pill').forEach(b => {
+            b.className = "cat-pill px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200";
+          });
+          e.target.className = "cat-pill px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold";
+          state.activeCategory = e.target.getAttribute('data-cat');
+          filterFoodLibrary();
+        });
+      });
+
+      // Add item triggers
+      document.getElementById('confirm-add-library-item').addEventListener('click', addSelectedLibraryItem);
+      document.getElementById('confirm-add-custom-item').addEventListener('click', addCustomItem);
+
+      // Target calculations & Presets
+      document.getElementById('apply-calc-btn').addEventListener('click', calculateMifflinStJeor);
+      document.getElementById('save-targets-btn').addEventListener('click', saveNutritionTargets);
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const split = btn.getAttribute('data-split').split(',').map(Number);
+          applyMacroSplit(split[0], split[1], split[2]);
+        });
+      });
+
+      // Auto compute calories in custom input if macros are typed
+      ['custom-protein', 'custom-carbs', 'custom-fat'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          const p = parseFloat(document.getElementById('custom-protein').value) || 0;
+          const c = parseFloat(document.getElementById('custom-carbs').value) || 0;
+          const f = parseFloat(document.getElementById('custom-fat').value) || 0;
+          document.getElementById('custom-calories').value = Math.round((p * 4) + (c * 4) + (f * 9));
+        });
+      });
+
+      // Copy summary button
+      document.getElementById('copy-summary-btn').addEventListener('click', copyDailySummary);
+    });
+  </script>
 </body>
 </html>
